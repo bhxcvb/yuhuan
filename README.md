@@ -1,78 +1,109 @@
-# 语欢 · Yuhuan
+<div align="center">
 
-一个**离线**的高考英语语法练习 App：14 套历年真题、685 道题、280 条译文、逐题详细解析。
-单文件网页实现，可打包成 Android APK；无网络请求、无权限、无账号。
+<img src="docs/icon.png" width="96" alt="语欢">
 
-> 名字取自「与语言相欢」。
+# 语欢 · 高考英语语法刷题
+
+**一个专注「英语语法」的离线刷题 App**
+不是背单词软件 —— 它练的是语法、句型、真题阅读里的语言点。
+
+</div>
+
+---
+
+## 这是干什么的
+
+语欢把 **14 套高考英语真题**拆成一道道小题，围绕**语法**组织练习：
+
+- 单选式语法点（时态、从句、非谓语、虚拟语气、倒装、主谓一致……）
+- 完形填空与语法填空（语境中的语法）
+- 阅读理解与七选五（长难句、指代、逻辑衔接）
+- 每道题都有**考点 + 原文依据 + 干扰项排除**的详细解析，阅读还配**全文翻译**
+
+目标很单纯：**别背规则，做题 → 暴露薄弱点 → 只补不会的**。
 
 ## 功能
 
-- **14 套真题**（2020 新高考 I/II、2021 新高考 I/II、2022 新高考 I/II、2023 新课标 I/II、2024 新课标 I/II、2025 全国一/二、2026 全国一/二）
-- 每套 45 题：完形填空 15 + 语法填空 10 + 阅读 15 + 七选五 5
-- **280 条译文**：阅读理解与七选五的原文全文、题干、每个选项都有中文翻译
-- **逐题详细解析**：考点 + 原文依据 + 干扰项排除
-- 六种练习方式：摸底诊断 / 每日一练 / 弱项组卷 / 模拟考 / 限时阅读 / 按试卷整套练
-- 错题本（按年份、题型筛选，答对两次才移出）
-- 学习数据：连续天数、最近 7 天正确率、本周报告、真题进度
-- 备份 / 恢复：一键复制 JSON，换设备粘贴导入
-- 日间 / 夜间主题；系统返回键走页面历史，不会误退出
+| | 能力 |
+|---|---|
+| 📚 **题库** | 685 题：14 套真题（2020–2026，每套 45 题）+ 55 道模块仿真题 |
+| 🀄 **译文** | 280 条：阅读/七选五的原文全文、题干、每个选项都有中文翻译 |
+| 📝 **解析** | 逐题「考点 / 依据 / 排除」，平均 110 字，不写“选 B 因为 B 对” |
+| 🎯 **摸底** | 20 题快速诊断 8 大语法模块，生成薄弱地图 |
+| 📅 **每日一练** | 固定题量，优先出你最弱的模块 |
+| 🧩 **弱项组卷** | 从最弱三个模块抽 10 题，排除已掌握 |
+| ⏱ **限时阅读** | 随机一篇阅读 6 分钟，练考场节奏 |
+| 📄 **按试卷练** | 目录式列出 14 套卷，整套 45 题做完看该卷正确率 |
+| ❌ **错题本** | 按年份/题型筛选，答对两次才移出 |
+| 📊 **学习数据** | 连续天数、最近 7 天正确率、本周报告、真题进度 |
+| 💾 **备份** | 一键复制 JSON，换设备粘贴恢复 |
+| 🌗 **主题** | 日间 / 夜间，跟随设置保存 |
 
-## 快速开始
+完全离线：**不联网、不申请任何权限、无账号、无广告**。数据存在本机浏览器 localStorage。
 
-直接双击 `index.html`，或用任何静态服务器：
+## 语法模块（专项训练的 8 个分类）
 
-```bash
-python3 -m http.server 8080
-# 打开 http://127.0.0.1:8080/
+时态 · 语态与一致 · 从句 · 非谓语 · 虚拟语气 · 情态动词 · 倒装与强调 · 词法与搭配
+
+## 两种用法
+
+**网页版**（手机/电脑浏览器直接打开，可加到主屏幕）
+
+```
+https://bhxcvb.github.io/yuhuan/
 ```
 
-数据保存在浏览器 localStorage，**不联网、不上传**。
+**Android APK**（35 万次下载也不会有广告，因为它就是单文件网页）
 
-## 打包 Android APK
+到 [Releases](https://github.com/bhxcvb/yuhuan/releases) 下载 `yuhuan-*.apk`，允许未知来源安装。
 
-需要 JDK、Android SDK 的 `aapt`、`zipalign`、`apksigner`，以及 [R8](https://r8.googlesource.com/r8) 提供的 `d8`。
+## 本地运行
 
 ```bash
-# 1. 编译入口
-javac -source 8 -target 8 -bootclasspath $ANDROID_JAR -d out app/MainActivity.java
-
-# 2. 转 dex
-java -cp r8.jar com.android.tools.r8.D8 --min-api 21 --lib $ANDROID_JAR --output dex out/**/*.class
-
-# 3. 打包资源与 dex
-aapt package -f -M app/AndroidManifest.xml -S app/res -A assets -I $ANDROID_JAR -F unsigned.apk
-(cd dex && aapt add ../unsigned.apk classes.dex)
-
-# 4. 对齐与签名
-zipalign -f 4 unsigned.apk aligned.apk
-apksigner sign --ks release.keystore --out yuhuan.apk aligned.apk
+git clone https://github.com/bhxcvb/yuhuan.git
+cd yuhuan
+python3 -m http.server 8080   # 打开 http://127.0.0.1:8080/
 ```
 
-`app/MainActivity.java` 只做三件事：WebView 加载 `assets/index.html`、返回键交给页面历史、把系统 TextToSpeech 暴露给网页（`AndroidNative`）。
+也可以直接双击 `index.html`。
+
+## 自己打包 APK
+
+需要 JDK、`aapt`、`zipalign`、`apksigner` 和 [R8](https://r8.googlesource.com/r8)（提供 `d8`）：
+
+```bash
+ANDROID_JAR=/path/to/android.jar R8_JAR=/path/to/r8.jar ./build/build-apk.sh
+```
+
+`app/MainActivity.java` 只做三件事：WebView 加载 `assets/index.html`、返回键交给页面历史、把系统 TextToSpeech 暴露给网页。
 
 ## 目录
 
 ```
-index.html          完整应用（含题库数据）
-app/                Android 外壳源码
-build/              打包脚本与说明
-docs/               图标等素材
+index.html            完整应用（题库内联，单文件）
+app/                  Android 外壳（MainActivity + Manifest + 图标）
+build/build-apk.sh    一键打包脚本
+docs/icon.png         图标
+reward.webp           赞赏码
 ```
 
 ## 数据与版权
 
-- 题目与原文来自历年高考真题，版权归原命题机构所有，本项目**仅用于学习研究**，如权利人提出异议会立即移除。
+- 题目与原文来自历年高考真题，版权归原命题机构；本项目**仅用于学习研究**，权利人提出异议会立即移除。
 - 解析、译文为本项目自行撰写。
-- 2020–2021 与 2026 二卷的答案对照官方答案卷；2022 年之后的官方答案未公开，答案为本项目自行解答。
+- 2020–2021、2026 二卷答案对照官方答案卷；2022 年之后官方答案未公开，答案由本项目自行解答。
 
 ## 许可
 
-代码以 MIT 许可发布；题库内容的使用请遵守上述说明。
+代码以 MIT 发布；题目内容的使用请遵守上述说明。
 
-## 支持作者
+---
 
-如果语欢帮到了你，欢迎扫码支持（完全自愿，不影响任何功能）：
+<details>
+<summary>❤ 支持作者（点开）</summary>
 
-![赞赏码](reward.webp)
+如果语欢帮到了你，可以扫码请我吃个包子。完全自愿，不影响任何功能。
 
-也欢迎提 Issue 反馈问题、推荐题目。
+<img src="reward.webp" width="220" alt="赞赏码">
+
+</details>
