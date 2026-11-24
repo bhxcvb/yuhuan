@@ -134,6 +134,8 @@ body.light .pick.cta .hint{color:var(--mute)}
 .exbox.ok{background:var(--ok-bg);border-left:3px solid var(--good)}
 .exbox.no{background:var(--no-bg);border-left:3px solid var(--bad)}
 .extag{display:block;font-size:11px;opacity:.7;margin-bottom:3px}
+.reward summary{font-size:14px;color:var(--acc);cursor:pointer;list-style:none;font-weight:600}
+.reward summary::-webkit-details-marker{display:none}
 .passage{background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow)}
 .passage summary{font-size:13px;color:var(--acc);cursor:pointer;list-style:none}
 .passage summary::-webkit-details-marker{display:none}
@@ -1484,7 +1486,11 @@ function render(){
         '<div class="row"><span>' + esc(ttsHint()) + '</span>' +
         '<button class="btn ghost" style="flex:0 0 92px;padding:8px 0;font-size:13px" data-act="ttsTest">试听</button></div>' +
         '<div class="hint" style="margin-top:6px">读不出声时：系统「设置 → 语言与输入法 → 文字转语音」安装或切换引擎。</div></div>' : '') +
-      
+      '<div class="sec"><details class="reward"><summary>❤ 支持作者（点开）</summary>' +
+        '<div class="hint" style="margin:10px 0 8px">如果语欢帮到了你，可以请我吃个包子。完全自愿，不影响任何功能。</div>' +
+        '<img src="reward.webp" alt="赞赏码" style="width:100%;max-width:280px;display:block;margin:0 auto;border-radius:14px">' +
+        '<div class="hint center" style="margin-top:8px">微信扫码 · 感谢支持</div>' +
+      '</details></div>' +
       '<div class="sec"><h3>关于</h3><div class="hint">语欢 v' + VERSION + ' · 完全离线，不联网，不需要任何权限。<br>' +
         '题库共 ' + QS.length + ' 题，其中真题 ' + QS.filter(function(q){ return !!q[5]; }).length + ' 道，来自 ' +
         Object.keys(papers()).length + ' 套高考卷（完形、语法填空、阅读与七选五）；其余为按考点编写的仿真题与改错题。<br>' +
