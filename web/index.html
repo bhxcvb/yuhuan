@@ -81,8 +81,9 @@ body.light .plan .cell{background:#ffffff80}
 .src{font-size:11.5px;color:var(--acc);background:#5b9dff1a;border:1px solid #5b9dff33;border-radius:20px;padding:3px 10px}
 .passage{background:var(--card);border-radius:16px;padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow)}
 .passage summary{font-size:13px;color:var(--acc);cursor:pointer;list-style:none}
-.ptext{margin-top:10px;font-size:14px;line-height:1.75;white-space:pre-wrap;max-height:44vh;overflow-y:auto;user-select:text}
-.qtext{font-size:19px;line-height:1.7}
+.ptext{margin-top:10px;font-size:14px;line-height:1.75;white-space:pre-wrap;max-height:44vh;overflow-y:auto;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.qtext{font-size:19px;line-height:1.7;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.essay-en{font-size:14.5px;line-height:1.8;white-space:pre-wrap;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .qtext u{color:var(--acc);text-decoration:none;border-bottom:2px solid var(--acc);padding:0 2px}
 .opt{width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);color:var(--fg);border-radius:16px;padding:15px 16px;font-size:16px;margin-bottom:10px;font-family:inherit;display:flex;gap:10px;transition:transform .12s,border-color .18s,background .18s}
 .opt:active{transform:scale(.985)}
@@ -252,6 +253,29 @@ function lookup(w){
   return null;
 }
 function meanOf(w){ var r=lookup(w); return r? r.d.t : ""; }
+
+/* ---------- 局部刷新（避免输入时重建页面导致键盘收起） ---------- */
+function searchPointsHTML(kw){
+  if(!kw) return "";
+  var hit=POINTS.filter(function(p){
+    if(p[0].toLowerCase().indexOf(kw)>=0) return true;
+    var K=KB[p[0]]; if(!K) return false;
+    var blob=((K.summary||"")+" "+(K.rules||[]).join(" ")+" "+(K.trap||"")).toLowerCase();
+    return blob.indexOf(kw)>=0;
+  });
+  if(!hit.length) return '<div class="hint center" style="padding:28px 0">没有匹配的知识点</div>';
+  return hit.map(function(p){
+    var pp=pointProgress(p[0]);
+    return '<div class="point" style="background:var(--card);border-radius:16px;margin-bottom:10px;border:0"><div class="nm" data-act="detail" data-p="'+esc(p[0])+'"><div>'+esc(p[0])+'</div><div class="hint">'+esc(p[7])+' · '+pp.done+'/'+pp.total+'</div></div><button class="go" data-act="prac" data-p="'+esc(p[0])+'">练</button></div>';
+  }).join("");
+}
+function wordResultHTML(q){
+  q=(q||"").trim();
+  if(!q) return "";
+  var f=lookup(q);
+  if(!f) return '<div class="sec" style="padding:14px"><div class="hint">词库里没有「'+esc(q)+'」，可能是专有名词或派生词。</div></div>';
+  return '<div class="sec" style="padding:14px"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-size:18px;font-weight:650">'+esc(f.w)+'</div>'+(f.d.p?'<div class="hint">'+esc(f.d.p)+'</div>':"")+'</div><div style="margin-top:6px;font-size:14.5px">'+esc(f.d.t)+'</div></div>';
+}
 
 /* ---------- 统计 ---------- */
 function qs(i){ if(!S.q[i]) S.q[i]={n:0,right:0}; return S.q[i]; }
@@ -544,20 +568,18 @@ function render(){
   if(phase==="outline"){
     $("ttl").textContent="语法总览";
     var kw=(ui.q||"").trim().toLowerCase();
-    var hitPts=kw?POINTS.filter(function(p){
-      if(p[0].toLowerCase().indexOf(kw)>=0) return true;
-      var K=KB[p[0]]; if(!K) return false;
-      var blob=((K.summary||"")+" "+(K.rules||[]).join(" ")+" "+(K.trap||"")).toLowerCase();
-      return blob.indexOf(kw)>=0;
-    }):[];
-    $("right").textContent=kw?hitPts.length+" 个":QS.length+" 题";
+    $("right").textContent=kw? "搜索中" : (QS.length+" 题");
     var searchBox='<input class="search" id="gq" placeholder="搜知识点：定语从句 / 虚拟 / 倒装" value="'+esc(ui.q||"")+'">';
     if(kw){
-      v.innerHTML=searchBox+(hitPts.length?hitPts.map(function(p){
-        var pp=pointProgress(p[0]);
-        return '<div class="point" style="background:var(--card);border-radius:16px;margin-bottom:10px;border:0"><div class="nm" data-act="detail" data-p="'+esc(p[0])+'"><div>'+esc(p[0])+'</div><div class="hint">'+esc(p[7])+' · '+pp.done+'/'+pp.total+'</div></div><button class="go" data-act="prac" data-p="'+esc(p[0])+'">练</button></div>';
-      }).join(""):'<div class="hint center" style="padding:28px 0">没有匹配的知识点</div>');
-      var gq=$("gq"); if(gq) gq.oninput=function(){ ui.q=this.value; render(); };
+      v.innerHTML=searchBox+'<div id="glist">'+searchPointsHTML(kw)+'</div>';
+      var gq=$("gq");
+      if(gq){
+        gq.oninput=function(){
+          ui.q=this.value;
+          var box=$("glist"); if(box) box.innerHTML=searchPointsHTML(this.value.trim().toLowerCase());
+          $("right").textContent=this.value.trim()?"搜索中":(QS.length+" 题");
+        };
+      }
       return;
     }
     v.innerHTML=searchBox+MODULES.map(function(m){
@@ -569,6 +591,15 @@ function render(){
         }).join("") + '<div class="point" style="background:var(--card2)"><div class="nm" style="font-weight:600">整个模块综合练</div><div class="pg">'+mp.done+'/'+mp.total+'</div><button class="go" data-act="pracmod" data-m="'+esc(m)+'">练</button></div>' : "")+
       '</div>';
     }).join("");
+    var gq2=$("gq");
+    if(gq2){
+      gq2.oninput=function(){
+        ui.q=this.value;
+        var kw2=this.value.trim().toLowerCase();
+        if(kw2){ v.innerHTML=searchBox+'<div id="glist">'+searchPointsHTML(kw2)+'</div>'; }
+        else { render(); }
+      };
+    }
     return;
   }
 
@@ -609,8 +640,8 @@ function render(){
     var showAns = ses.picked!==null;
     v.innerHTML=
       '<div class="srcrow"><span class="src">'+esc(QS[qi][5]||"仿真")+(item[7]?" · "+esc(item[7]):"")+(NOS[qi]?" · 第"+NOS[qi]+"题":"")+'</span></div>'+
-      (item[6]?'<details class="passage"><summary>📖 看原文（可上下滑动）</summary><div class="ptext" id="ptext">'+esc(item[6])+'</div></details>':"")+
-      '<div class="card"><div class="qtext">'+esc(item[1]).replace(/_{3,}/g,"<u>____</u>")+'</div></div>'+
+      (item[6]?'<details class="passage"><summary>📖 看原文（可上下滑动）</summary><div class="ptext" id="ptext" data-word="1">'+esc(item[6])+'</div></details>':"")+
+      '<div class="card"><div class="qtext" data-word="1">'+esc(item[1]).replace(/_{3,}/g,"<u>____</u>")+'</div></div>'+
       '<div style="margin-top:14px">'+optsHTML+'</div>'+
       (showAns?'<div class="why"><b>解析：</b>'+esc(item[4])+'</div>'+
         (tr&&tr.p?'<div class="trbox"><div class="trh">原文译文</div><div class="trq" style="white-space:pre-wrap">'+esc(tr.p)+'</div></div>':"")+
@@ -719,7 +750,7 @@ function render(){
         return '<button class="'+cls+'" data-act="bpick" data-q="'+qi+'" data-k="'+k+'"><span class="k">'+"ABCDEFG"[k]+'</span><span>'+esc(o)+'</span></button>';
       }).join("");
       var head='<div style="font-size:13px;color:var(--acc);margin:18px 0 8px">第 '+(idx+1)+' 题'+(NOS[qi]?"（原卷第 "+NOS[qi]+" 题）":"")+'</div>';
-      var stem='<div class="card" style="padding:16px"><div class="qtext" style="font-size:17px">'+esc(item[1]).replace(/_{3,}/g,"<u>____</u>")+'</div></div>';
+      var stem='<div class="card" style="padding:16px"><div class="qtext" data-word="1" style="font-size:17px">'+esc(item[1]).replace(/_{3,}/g,"<u>____</u>")+'</div></div>';
       var ansBox="";
       if(ses.submitted){
         ansBox='<div class="why"><b>解析：</b>'+esc(item[4])+'</div>';
@@ -732,7 +763,7 @@ function render(){
     var submitBtn=ses.submitted
       ? '<button class="btn" data-act="blockdone">完成</button>'
       : '<button class="btn good" data-act="bsubmit">交卷（已答 '+Object.keys(ses.answers).length+'/'+ids.length+'）</button>';
-    v.innerHTML='<div class="passage"><div class="ptext" style="max-height:none;font-size:14.5px;line-height:1.8">'+esc(passage)+'</div></div>'+
+    v.innerHTML='<div class="passage"><div class="ptext" data-word="1" style="max-height:none;font-size:14.5px;line-height:1.8">'+esc(passage)+'</div></div>'+
       (ses.submitted&&trAll.p?'<div class="trbox"><div class="trh">原文译文</div><div class="trq" style="white-space:pre-wrap">'+esc(trAll.p)+'</div></div>':"")+
       qHTML+submitBtn;
     return;
@@ -774,7 +805,7 @@ function render(){
     var item2=QS[qi2], tr2=TR[qi2];
     v.innerHTML='<div class="srcrow"><span class="src">'+esc(item2[5]||"仿真")+(NOS[qi2]?" · 第"+NOS[qi2]+"题":"")+'</span></div>'+
       (item2[6]?'<details class="passage"><summary>📖 看原文</summary><div class="ptext">'+esc(item2[6])+'</div></details>':"")+
-      '<div class="card"><div class="qtext">'+esc(item2[1]).replace(/_{3,}/g,"<u>____</u>")+'</div></div>'+
+      '<div class="card"><div class="qtext" data-word="1">'+esc(item2[1]).replace(/_{3,}/g,"<u>____</u>")+'</div></div>'+
       '<div style="margin-top:14px">'+item2[2].map(function(o,k){ return '<div class="opt '+(k===item2[3]?"ok":"")+'"><span class="k">'+"ABCDEFG"[k]+'</span><span>'+esc(o)+'</span></div>'; }).join("")+'</div>'+
       '<div class="why"><b>解析：</b>'+esc(item2[4])+'</div>'+
       (tr2?'<div class="trbox"><div class="trh">译文</div>'+(tr2.q?'<div class="trq"><b>题目：</b>'+esc(tr2.q)+'</div>':"")+((tr2.o||[]).map(function(t,k){return '<div class="tro"><b>'+"ABCDEFG"[k]+'.</b> '+esc(t)+'</div>';}).join(""))+'</div>':"");
@@ -807,7 +838,7 @@ function render(){
     var w=WRITING[ui.essay]||{};
     $("ttl").textContent="范文"; $("right").textContent=(ui.essay+1)+"/"+WRITING.length;
     v.innerHTML='<div class="srcrow"><span class="src">'+esc(w.src||"")+'</span></div>'+
-      '<div class="card"><div style="font-size:17px;font-weight:650;margin-bottom:10px">'+esc(w.title||"")+'</div><div style="font-size:14.5px;line-height:1.8;white-space:pre-wrap">'+esc(w.en||"")+'</div></div>'+
+      '<div class="card"><div style="font-size:17px;font-weight:650;margin-bottom:10px">'+esc(w.title||"")+'</div><div class="essay-en" data-word="1">'+esc(w.en||"")+'</div><div class="hint" style="margin-top:10px">长按单词可查词或加入生词本</div></div>'+
       ((w.points||[]).length?'<div class="sec"><h3>要点覆盖</h3>'+w.points.map(function(x){return '<div class="row"><span>✓</span><span style="flex:1;font-size:14px;text-align:left">'+esc(x)+'</span></div>';}).join("")+'</div>':"")+
       '<div class="sec"><h3>中文译文</h3><div class="hint" style="font-size:14px;line-height:1.8;color:var(--fg);white-space:pre-wrap">'+esc(w.zh||"")+'</div></div>'+
       (w.tip?'<div class="sec"><h3>写作提示</h3><div class="hint" style="font-size:14px">'+esc(w.tip)+'</div></div>':"");
@@ -816,16 +847,9 @@ function render(){
 
   if(phase==="words"){
     $("ttl").textContent="生词本"; $("right").textContent=S.words.length+" 词";
-    var q=(ui.wq||"").trim();
-    var found=q?lookup(q):null;
-    var head='<input class="search" id="wq" type="text" placeholder="查词：输入英文单词" value="'+esc(q)+'" style="width:100%;background:var(--input);border:1.5px solid var(--input-line);color:var(--fg);border-radius:12px;padding:11px 14px;font-size:15px;font-family:inherit">';
-    var res = q? (found? '<div class="sec" style="padding:14px"><div style="font-size:18px;font-weight:650">'+esc(found.w)+'</div>'+(found.d.p?'<div class="hint">'+esc(found.d.p)+'</div>':"")+'<div style="margin-top:6px;font-size:14.5px">'+esc(found.d.t)+'</div></div>' : '<div class="sec" style="padding:14px"><div class="hint">词库里没有「'+esc(q)+'」，它可能是专有名词或派生词。</div></div>') : "";
-    if(!S.words.length){
-      v.innerHTML=head+res+'<div class="hero center"><div class="big">还没有生词</div><div class="sub">在答题页长按原文里的英文单词，就能收进这里</div></div>';
-      var wq=$("wq"); if(wq){ wq.oninput=function(){ ui.wq=this.value; render(); }; }
-      return;
-    }
-    v.innerHTML=head+res+S.words.slice().reverse().map(function(w,k){
+    var q0=ui.wq||"";
+    var head='<input class="search" id="wq" placeholder="查词：输入英文单词" value="'+esc(q0)+'">';
+    var list=S.words.slice().reverse().map(function(w,k){
       var d=lookup(w.w);
       return '<div class="sec" style="padding:14px"><div style="display:flex;align-items:center"><b style="font-size:17px">'+esc(w.w)+'</b>'+
         (d&&d.d.p?'<span class="hint" style="margin-left:8px">'+esc(d.d.p)+'</span>':"")+
@@ -833,7 +857,15 @@ function render(){
         '<div style="margin-top:6px;font-size:14.5px">'+(d?esc(d.d.t):'<span class="hint">词库未收录（可能是专有名词）</span>')+'</div>'+
         '<div class="hint" style="margin-top:6px;border-top:1px solid var(--line);padding-top:6px">'+esc(w.ctx||"")+'</div></div>';
     }).join("");
-    var wq2=$("wq"); if(wq2){ wq2.oninput=function(){ ui.wq=this.value; render(); }; }
+    v.innerHTML=head+'<div id="wres">'+wordResultHTML(q0)+'</div>'+
+      (S.words.length? '<div id="wlist">'+list+'</div>' : '<div class="hero center"><div class="big">还没有生词</div><div class="sub">在答题页或范文里长按英文单词，就能收进这里</div></div>');
+    var wq=$("wq");
+    if(wq){
+      wq.oninput=function(){
+        ui.wq=this.value;
+        var box=$("wres"); if(box) box.innerHTML=wordResultHTML(this.value);
+      };
+    }
     return;
   }
 
@@ -940,33 +972,51 @@ document.addEventListener("click", function(ev){
   if(act==="sheetNo"){ closeSheet(); return; }
 });
 
-/* 长按原文单词加入生词本 */
+/* 长按取词：任意英文文本块 */
+function openWordSheet(w, ctx){
+  var f=lookup(w);
+  var mean=f? f.d.t : "词库未收录（可能是专有名词）";
+  var ph=(f&&f.d.p)? f.d.p+"\n" : "";
+  $("stitle").textContent=w;
+  $("stext").textContent=ph+mean+(ctx?"\n\n"+ctx:"");
+  $("sok").textContent="加入生词本";
+  pendingOk=function(){
+    if(S.words.some(function(x){return x.w===w;})){ toast("「"+w+"」已在生词本"); return; }
+    S.words.push({w:w,ctx:ctx||"",ts:Date.now()}); save(); toast("已加入生词本："+w);
+    if(phase==="words") render();
+  };
+  $("sheet").className="sheet on";
+}
+
 var lpTimer=null;
 document.addEventListener("pointerdown", function(ev){
   var t=ev.target;
   if(!t||!t.closest) return;
-  if(!t.closest(".ptext")) return;
+  if(!t.closest("[data-word]")) return;
   lpTimer=setTimeout(function(){
     try{
       var range=document.caretRangeFromPoint?document.caretRangeFromPoint(ev.clientX,ev.clientY):null;
-      if(!range) return;
+      if(!range || !range.startContainer) { toast("取词失败，请再长按一次"); return; }
       var node=range.startContainer, off=range.startOffset;
       var text=node.textContent||"";
       var start=off, end=off;
       while(start>0 && /[A-Za-z'-]/.test(text[start-1])) start--;
       while(end<text.length && /[A-Za-z'-]/.test(text[end])) end++;
       var w=text.slice(start,end).trim();
-      if(!w || w.length<2) return;
-      if(S.words.some(function(x){return x.w===w;})){ toast("「"+w+"」已在生词本"); return; }
-      var ctx=text.slice(Math.max(0,start-40), Math.min(text.length,end+40)).replace(/\s+/g," ");
-      S.words.push({w:w, ctx:ctx, ts:Date.now()});
-      save(); var mn=meanOf(w); toast("已加入："+w+(mn?" · "+mn.slice(0,24):""));
-    }catch(e){}
+      if(!w || w.length<2){ toast("请长按在一个英文单词上"); return; }
+      var ctx=text.slice(Math.max(0,start-50), Math.min(text.length,end+50)).replace(/\s+/g," ").trim();
+      openWordSheet(w, ctx);
+    }catch(e){ toast("取词失败，请再长按一次"); }
   },520);
 }, {passive:true});
 document.addEventListener("pointerup", function(){ if(lpTimer){ clearTimeout(lpTimer); lpTimer=null; } }, {passive:true});
 document.addEventListener("pointercancel", function(){ if(lpTimer){ clearTimeout(lpTimer); lpTimer=null; } }, {passive:true});
-document.addEventListener("contextmenu", function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".ptext")) ev.preventDefault(); });
+document.addEventListener("contextmenu", function(ev){
+  if(ev.target&&ev.target.closest&&ev.target.closest("[data-word]")) ev.preventDefault();
+});
+document.addEventListener("selectionchange", function(){
+  try{ var sel=window.getSelection&&window.getSelection(); if(sel && sel.removeAllRanges && document.activeElement && document.activeElement.tagName!=="TEXTAREA" && document.activeElement.tagName!=="INPUT"){ /* 保留输入框选择 */ } }catch(e){}
+});
 
 window.addEventListener("popstate", function(ev){ stopTimer(); phase=(ev.state&&ev.state.phase)?ev.state.phase:"home"; render(); });
 

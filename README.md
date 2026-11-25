@@ -44,6 +44,7 @@
 <img src="screenshots/detail.png" width="240" alt="知识点详情">
 <img src="screenshots/passage-answer.png" width="240" alt="整篇作答">
 <img src="screenshots/mine.png" width="240" alt="我的">
+<img src="screenshots/words.png" width="240" alt="生词本">
 <img src="screenshots/writing.png" width="240" alt="写作范文">
 
 </div>
@@ -83,7 +84,7 @@
 | ❌ **错题本** | 自动收录，答对两次移出，可单独重练 |
 | 📊 **本周报告** | 最近 7 天每天题量与正确率 |
 | 📈 **掌握度** | 8 个模块的掌握度条形图、成就系统 |
-| 📖 **生词本** | 长按阅读原文里的单词收录，内置 5500+ 词离线词典，带音标与中文释义 |
+| 📖 **生词本** | 长按任意英文单词弹出卡片（音标+释义），一键收录；内置 5500+ 词离线词典，支持词形回退 |
 | 💾 **备份** | 一键复制 JSON，换设备粘贴恢复 |
 | 🌗 **主题** | 日间 / 夜间 + 6 种主题色（蓝/紫/绿/橙/玫红/青） |
 | 🗓 **高考倒计时** | 设置考试日期，首页显示剩余天数 |
