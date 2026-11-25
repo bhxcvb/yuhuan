@@ -182,6 +182,8 @@ python3 tests/e2e_ext.py          # 15 项离线 / 数据完整性 / 备份恢�
 
 CI 每次 push 跑：题库结构校验（答案索引、选项、解析、知识点归属、重复题）、`基础回归`、`端到端`。细节见 [tests/README.md](tests/README.md)。
 
+**性能**：单文件 5.5 MB，首屏 `DOMContentLoaded` 约 0.45 s（词典懒加载，首次查词再解析）；无 ES6+ 语法，兼容旧版 WebView。
+
 ## 10. FAQ
 **常见问题**
 

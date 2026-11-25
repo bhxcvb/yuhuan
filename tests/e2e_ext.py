@@ -83,7 +83,7 @@ def main():
             total = pg.evaluate("QS.length")
             ok(ver.startswith('6.'), f'版本 {ver}')
             ok(total == 1460, f'题库 {total} 题')
-            ok(pg.evaluate("Object.keys(DICT).length") > 27000, '词典 > 27000 词')
+            ok(pg.evaluate("Object.keys(getDict()).length") > 27000, '词典 > 27000 词')
             b.close()
     finally:
         srv.terminate()

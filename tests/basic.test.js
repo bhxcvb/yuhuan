@@ -51,7 +51,7 @@ ok(withP.every(i=>TR[i]&&TR[i].p),'篇章题都有原文译文');
 ok(Object.keys(KB).length===51,'知识库 51 篇');
 ok(WRITING.length===14,'范文 14 篇');
 ok(WRITING.every(w=>w.en&&w.zh),'范文含中英');
-ok(Object.keys(DICT).length>26000,'词库 '+Object.keys(DICT).length);
+ok(Object.keys(getDict()).length>26000,'词库 '+Object.keys(getDict()).length);
 ok(true,'完形已移除');
 
 /* ========== B. 所有入口的题池规则 ========== */
@@ -173,7 +173,7 @@ ok(isCJK('网络')&&!isCJK('network'),'中英文判断');
   var r2=searchChinese('解释'); ok(r2.slice(0,3).indexOf('explain')>=0,'中文查「解释」→ explain');
   var r3=searchChinese('尽管'); ok(r3.length>=2,'中文查「尽管」有结果');
   var r4=searchChinese('责任'); ok(r4.length>=2,'中文查「责任」有结果');
-  ok(!!DICT['account for'],'短语库含 account for');
+  ok(!!getDict()['account for'],'短语库含 account for');
   ok(suggestCNHTML('网络').indexOf('network')>=0,'中文结果渲染到页面');
 })();
 
