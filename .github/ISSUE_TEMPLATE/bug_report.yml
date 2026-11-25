@@ -1,0 +1,31 @@
+name: 报告问题
+description: 题目错误、页面异常、功能不可用
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: 感谢反馈。请尽量写清楚题号或操作步骤。
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 使用方式
+      options: [Android APK, 网页版, 本地 HTML]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 「我的 → 关于」里能看到
+      placeholder: 5.1
+  - type: textarea
+    id: what
+    attributes:
+      label: 问题描述
+      description: 如果是题目错误，请写清来源（年份/卷别/题号）
+    validations:
+      required: true
+  - type: textarea
+    id: expect
+    attributes:
+      label: 期望结果
