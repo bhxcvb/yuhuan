@@ -166,6 +166,17 @@ const t2=Date.now(); for(let k=0;k<50;k++) suggestWords('inf'); const t3=Date.no
 ok((t3-t2)/50<20,'联想平均 '+((t3-t2)/50).toFixed(1)+'ms（<20ms）');
 
 
+/* ========== J2. 中文反查 ========== */
+ok(isCJK('网络')&&!isCJK('network'),'中英文判断');
+(function(){
+  var r1=searchChinese('网络'); ok(r1.length>0 && r1.slice(0,3).indexOf('network')>=0,'中文查「网络」→ network（实际 '+r1.slice(0,3).join(',')+'）');
+  var r2=searchChinese('解释'); ok(r2.slice(0,3).indexOf('explain')>=0,'中文查「解释」→ explain');
+  var r3=searchChinese('尽管'); ok(r3.length>=2,'中文查「尽管」有结果');
+  var r4=searchChinese('责任'); ok(r4.length>=2,'中文查「责任」有结果');
+  ok(!!DICT['account for'],'短语库含 account for');
+  ok(suggestCNHTML('网络').indexOf('network')>=0,'中文结果渲染到页面');
+})();
+
 /* ========== K. 更新检查 ========== */
 global.XMLHttpRequest=function(){
   this.open=function(){}; this.send=function(){ this.status=200;

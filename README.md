@@ -59,7 +59,7 @@
 | 📖 | **语法知识库** | 51 篇：规则、例句（英文+译文）、常见错误、易混陷阱 |
 | 🀄 | **全文译文** | 阅读/七选五全文、完形整篇译文，答题后公布 |
 | ✍️ | **写作范文** | 14 篇高分范文：英文 + 译文 + 要点 + 提示 |
-| 🔤 | **首页查词** | 输入字母实时联想想似单词，带音标与释义 |
+| 🔤 | **首页查词** | 输入英文联想单词，**输入中文反查英文**（如「网络」→ network、「因为」→ because of） |
 | 📖 | **生词本** | 长按任意英文单词弹卡片，一键收录；内置 26,883 词离线词典 |
 | 📊 | **学习数据** | 周报、模块掌握度条形图、8 个成就徽章、高考倒计时 |
 | 🌗 | **主题** | 日间 / 夜间 + 6 种主题色 |
@@ -107,10 +107,10 @@
 
 | 平台 | 怎么装 | 体积 | 需要什么 |
 |---|---|---|---|
-| **Android** | 下载 [APK](https://github.com/bhxcvb/yuhuan/releases/download/v6.10/yuhuan-v6.10.apk)，允许未知来源安装 | 1.3 MB | 无 |
+| **Android** | 下载 [APK](https://github.com/bhxcvb/yuhuan/releases/download/v6.11/yuhuan-v6.11.apk)，允许未知来源安装 | 1.3 MB | 无 |
 | **iPhone / iPad** | Safari 打开[网页版](https://bhxcvb.github.io/yuhuan/web/) → 分享 → **添加到主屏幕** | 0（浏览器缓存） | 无 |
 | **Windows（推荐）** | Edge/Chrome 打开网页版 → 地址栏 **安装** 图标 | 0 | 系统自带浏览器 |
-| **Windows（独立包）** | 下载 [yuhuan-windows-x64.zip](https://github.com/bhxcvb/yuhuan/releases/download/v6.10/yuhuan-windows-x64.zip)，解压双击 `语欢.exe` | 100 MB | 无（自带浏览器） |
+| **Windows（独立包）** | 下载 [yuhuan-windows-x64.zip](https://github.com/bhxcvb/yuhuan/releases/download/v6.11/yuhuan-windows-x64.zip)，解压双击 `语欢.exe` | 100 MB | 无（自带浏览器） |
 | **macOS** | Chrome/Edge 打开网页版 → 安装 | 0 | 无 |
 | **源码运行** | `python3 -m http.server` 后打开 `web/` | — | Python |
 
