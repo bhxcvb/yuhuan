@@ -1,0 +1,26 @@
+name: Yuhuan
+options:
+  bundleIdPrefix: com.dsh
+  deploymentTarget:
+    iOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+targets:
+  Yuhuan:
+    type: application
+    platform: iOS
+    sources:
+      - path: Yuhuan
+        excludes: ["Info.plist"]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dsh.yuhuan
+        INFOPLIST_FILE: Yuhuan/Info.plist
+        MARKETING_VERSION: "6.9"
+        CURRENT_PROJECT_VERSION: "69"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGNING_ALLOWED: "NO"
+        CODE_SIGNING_REQUIRED: "NO"
+        CODE_SIGN_IDENTITY: ""

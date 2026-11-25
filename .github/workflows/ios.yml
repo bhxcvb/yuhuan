@@ -1,0 +1,55 @@
+name: iOS 打包
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "ios/**"
+      - "web/index.html"
+      - ".github/workflows/ios.yml"
+
+jobs:
+  build:
+    name: 编译免签名 IPA
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 XcodeGen
+        run: brew install xcodegen
+
+      - name: 准备应用文件
+        run: |
+          mkdir -p ios/Yuhuan/app
+          cp web/index.html ios/Yuhuan/app/index.html
+          [ -f reward.webp ] && cp reward.webp ios/Yuhuan/app/ || true
+          cp ios/Yuhuan/AppDelegate.swift ios/Yuhuan/WebViewController.swift ios/Yuhuan/Info.plist ios/Yuhuan/ 2>/dev/null || true
+
+      - name: 生成 Xcode 工程
+        run: |
+          cd ios
+          xcodegen generate
+
+      - name: 编译（不签名）
+        run: |
+          cd ios
+          xcodebuild -project Yuhuan.xcodeproj -scheme Yuhuan \
+            -configuration Release -sdk iphoneos -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build | tail -40
+
+      - name: 打包 IPA
+        run: |
+          cd ios
+          APP=$(find build/Build/Products/Release-iphoneos -name "*.app" -maxdepth 1 | head -1)
+          echo "APP=$APP"
+          mkdir -p Payload
+          cp -r "$APP" Payload/
+          zip -qr yuhuan-unsigned.ipa Payload
+          ls -lh yuhuan-unsigned.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yuhuan-unsigned-ipa
+          path: ios/yuhuan-unsigned.ipa
+          retention-days: 30
