@@ -8,8 +8,8 @@
 
 [![License](https://img.shields.io/badge/license-MIT-5b9dff?style=flat-square)](LICENSE)
 [![Version](https://img.shields.io/badge/version-6.4-8f7bff?style=flat-square)](https://github.com/bhxcvb/yuhuan/releases)
-[![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Web-3ecf8e?style=flat-square)](#user-content-usage)
-[![Offline](https://img.shields.io/badge/offline-100%25-3ecf8e?style=flat-square)](#user-content-why)
+[![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Web-3ecf8e?style=flat-square)](#5-usage)
+[![Offline](https://img.shields.io/badge/offline-100%25-3ecf8e?style=flat-square)](#1-overview)
 [![CI](https://img.shields.io/github/actions/workflow/status/bhxcvb/yuhuan/check.yml?style=flat-square&label=CI)](https://github.com/bhxcvb/yuhuan/actions)
 
 [官网](https://bhxcvb.github.io/yuhuan/) · [网页版](https://bhxcvb.github.io/yuhuan/web/) · [下载 APK](https://github.com/bhxcvb/yuhuan/releases) · [更新日志](CHANGELOG.md) · [反馈问题](https://github.com/bhxcvb/yuhuan/issues)
@@ -18,20 +18,18 @@
 
 ---
 
-<a id="toc"></a>
-
-## 📑 目录
+## Contents
+**目录**
 
 | | | |
 |---|---|---|
-| [① 这是什么](#user-content-why) | [② 功能](#user-content-features) | [③ 界面](#user-content-screenshots) |
-| [④ 语法模块](#user-content-grammar) | [⑤ 怎么用](#user-content-usage) | [⑥ 本地开发](#user-content-dev) |
-| [⑦ 目录结构](#user-content-structure) | [⑧ 数据格式](#user-content-data) | [⑨ 常见问题](#user-content-faq) |
-| [⑩ 支持作者](#user-content-support) | [⑪ 许可](#user-content-license) | |
+| [① 这是什么](#1-overview) | [② 功能](#2-features) | [③ 界面](#3-screenshots) |
+| [④ 语法模块](#4-grammar) | [⑤ 怎么用](#5-usage) | [⑥ 本地开发](#6-development) |
+| [⑦ 目录结构](#7-structure) | [⑧ 数据格式](#8-data-format) | [⑨ 常见问题](#9-faq) |
+| [⑩ 支持作者](#10-support) | [⑪ 许可](#11-license) | |
 
-<a id="why"></a>
-
-## ① 这是什么
+## 1. Overview
+**这是什么**
 
 单词背得再多，语法题该错还是错。语欢练的是**语法本身**：
 
@@ -44,9 +42,8 @@
 >
 > 完全离线：不联网、不申请任何权限、无账号、无广告。数据只存在本机。
 
-<a id="features"></a>
-
-## ② 功能
+## 2. Features
+**功能**
 
 | | 功能 | 说明 |
 |---|---|---|
@@ -67,9 +64,8 @@
 | 🌗 | **主题** | 日间 / 夜间 + 6 种主题色 |
 | 💾 | **备份** | 一键复制 JSON，换设备粘贴恢复 |
 
-<a id="screenshots"></a>
-
-## ③ 界面
+## 3. Screenshots
+**界面**
 
 <table>
 <tr>
@@ -89,9 +85,8 @@
 </tr>
 </table>
 
-<a id="grammar"></a>
-
-## ④ 语法模块
+## 4. Grammar
+**语法模块**
 
 | 模块 | 知识点 |
 |---|---|
@@ -104,9 +99,8 @@
 | **倒装与强调** | 否定词置首、only + 状语、so do I、强调句 |
 | **词法与搭配** | 比较级、the more the more、冠词、时间介词、形式主语 / 宾语 it、both…and、some / any、prefer |
 
-<a id="usage"></a>
-
-## ⑤ 怎么用
+## 5. Usage
+**怎么用**
 
 **网页版**（手机 / 电脑浏览器直接打开，可添加到主屏幕）
 
@@ -120,9 +114,8 @@ https://bhxcvb.github.io/yuhuan/web/
 
 **第一次用建议**：先做 20 题摸底 → 首页「开始今日学习」→ 每天按计划复习。
 
-<a id="dev"></a>
-
-## ⑥ 本地开发
+## 6. Development
+**本地开发**
 
 ```bash
 git clone https://github.com/bhxcvb/yuhuan.git
@@ -138,9 +131,8 @@ ANDROID_JAR=/path/to/android.jar R8_JAR=/path/to/r8.jar ./build/build-apk.sh
 
 `app/MainActivity.java` 只做三件事：WebView 加载 `assets/index.html`、返回键交给页面历史、把系统 `TextToSpeech` 暴露给网页。
 
-<a id="structure"></a>
-
-## ⑦ 目录结构
+## 7. Structure
+**目录结构**
 
 ```
 index.html            官网落地页
@@ -152,9 +144,8 @@ docs/                 横幅、图标、二维码
 .github/workflows/    CI：推送时校验脚本语法与题库结构
 ```
 
-<a id="data"></a>
-
-## ⑧ 数据格式
+## 8. Data format
+**数据格式**
 
 题库内联在 `web/index.html`，几个全局变量：
 
@@ -168,9 +159,8 @@ DICT[word] = { t: "中文释义", p: "/音标/" }
 
 想换成自己的题库，改这些变量即可，界面逻辑不用动。
 
-<a id="faq"></a>
-
-## ⑨ 常见问题
+## 9. FAQ
+**常见问题**
 
 <details>
 <summary><b>进度会不会丢？</b></summary>
@@ -196,9 +186,8 @@ DICT[word] = { t: "中文释义", p: "/音标/" }
 2020–2021、2026 二卷对照官方答案卷；2022 年之后官方答案未公开，答案由本项目自行解答并交叉校验。
 </details>
 
-<a id="support"></a>
-
-## ⑩ 支持作者
+## 10. Support
+**支持作者**
 
 如果语欢帮到了你，欢迎扫码支持（完全自愿，不影响任何功能）：
 
@@ -206,9 +195,8 @@ DICT[word] = { t: "中文释义", p: "/音标/" }
 
 也欢迎点个 ⭐️ Star，或提 [Issue](https://github.com/bhxcvb/yuhuan/issues) 反馈问题、推荐题目。
 
-<a id="license"></a>
-
-## ⑪ 许可
+## 11. License
+**许可**
 
 代码以 MIT 发布；题目内容版权归原命题机构，仅用于学习研究，权利人提出异议会立即移除。
 
