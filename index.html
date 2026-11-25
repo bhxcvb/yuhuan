@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0b0d13">
 <title>语欢 · 高考英语语法刷题</title>
 <style>
@@ -22,8 +22,8 @@ body.light{
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%}
-body{background:var(--page);color:var(--fg);font:16px/1.55 -apple-system,"Noto Sans SC","PingFang SC",system-ui,sans-serif}
-#app{display:flex;flex-direction:column;height:100dvh;max-width:620px;margin:0 auto}
+body{background:var(--page);color:var(--fg);touch-action:pan-y;font:16px/1.55 -apple-system,"Noto Sans SC","PingFang SC",system-ui,sans-serif}
+#app{display:flex;flex-direction:column;height:100dvh;max-width:620px;margin:0 auto;touch-action:pan-y}
 header{padding:calc(12px + env(safe-area-inset-top)) 18px 6px;display:flex;align-items:center;gap:10px;flex-shrink:0}
 header .back{background:none;border:0;color:var(--acc);font-size:15px;padding:2px 0;font-family:inherit;display:none}
 header .ttl{font-size:17px;font-weight:650;flex:1}
@@ -62,7 +62,13 @@ nav button.on{color:var(--acc)}
 .bar{height:5px;border-radius:4px;background:var(--card2);overflow:hidden;margin-top:6px}
 .bar>i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .5s}
 
-.card{background:var(--card);border-radius:24px;padding:22px 18px;box-shadow:var(--shadow)}
+.view-in{animation:vin .28s cubic-bezier(.2,.8,.3,1)}
+@keyframes vin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.pop{animation:pop .22s cubic-bezier(.2,.8,.3,1)}
+@keyframes pop{from{transform:scale(.97);opacity:.6}to{transform:none;opacity:1}}
+.opt{transition:transform .12s,border-color .18s,background .18s}
+.opt:active{transform:scale(.985)}
+.card{animation:pop .24s cubic-bezier(.2,.8,.3,1);background:var(--card);border-radius:24px;padding:22px 18px;box-shadow:var(--shadow)}
 .srcrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .src{font-size:11.5px;color:var(--acc);background:#5b9dff1a;border:1px solid #5b9dff33;border-radius:20px;padding:3px 10px}
 .passage{background:var(--card);border-radius:16px;padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow)}
@@ -158,6 +164,28 @@ function loadStore(){
 }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ toast("保存失败"); } }
 function applyTheme(){ document.body.className = S.settings.theme==="light" ? "light":"dark"; var b=$("theme"); if(b) b.textContent = S.settings.theme==="light" ? "🌙":"☀️"; }
+function ttsStatus(){
+  if(!window.AndroidNative) return -1;
+  try { return AndroidNative.status ? AndroidNative.status() : (AndroidNative.available() ? 0 : 1); } catch(e){ return -1; }
+}
+function ttsOk(){
+  var st=ttsStatus();
+  if(st===0||st===2) return true;
+  if(st===-1 && ("speechSynthesis" in window) && window.speechSynthesis) return true;
+  return false;
+}
+function speakText(t){
+  t=String(t||"").trim(); if(!t) return;
+  if(window.AndroidNative && AndroidNative.speak){
+    var st=ttsStatus();
+    if(st===0||st===2){ try{ AndroidNative.speak(t); return; }catch(e){} }
+    if(st===1){ toast("系统没有文字转语音引擎"); return; }
+  }
+  if("speechSynthesis" in window && window.speechSynthesis){
+    try{ speechSynthesis.cancel(); var u=new SpeechSynthesisUtterance(t); u.lang="en-US"; u.rate=.9; speechSynthesis.speak(u); return; }catch(e){}
+  }
+  toast("当前环境无法朗读");
+}
 function toast(m){ var t=$("toast"); t.textContent=m; t.className="toast on"; clearTimeout(toast._t); toast._t=setTimeout(()=>t.className="toast",1800); }
 
 var pendingOk=null;
@@ -212,8 +240,41 @@ function startMock(){
 function startDaily(){
   var ids=QS.map((_,i)=>i).filter(i=>!isDone(i));
   if(!ids.length){ toast("已经全部答对了 🎉"); return; }
-  begin("daily", null, shuffle(ids).slice(0, S.settings.daily));
+  begin("daily","每日一练", shuffle(ids).slice(0, S.settings.daily));
 }
+function startPaper(src){
+  var ids=[]; for(var i=0;i<QS.length;i++){ if((QS[i][5]||"")===src) ids.push(i); }
+  if(!ids.length){ toast("这套卷没有题"); return; }
+  ids.sort(function(a,b){ return (NOS[a]||0)-(NOS[b]||0); });
+  begin("paper", src, ids);
+}
+function startRealCat(cat){
+  var ids=[]; for(var i=0;i<QS.length;i++){ if(QS[i][0]===cat) ids.push(i); }
+  if(!ids.length){ toast("这个题型没有题"); return; }
+  begin("cat", cat, shuffle(ids).slice(0,10));
+}
+function startTimed(){
+  var groups={};
+  for(var i=0;i<QS.length;i++){
+    var p=QS[i][6];
+    if(!p) continue;
+    var k=QS[i][0]+"|"+p.slice(0,60);
+    (groups[k]=groups[k]||[]).push(i);
+  }
+  var keys=Object.keys(groups).filter(function(k){ return groups[k].length>=3; });
+  if(!keys.length){ toast("没有可用的阅读篇目"); return; }
+  var pick=keys[Math.floor(Math.random()*keys.length)];
+  ses={ mode:"timed", label:"限时阅读", list:groups[pick].slice(), i:0, right:0, wrong:0, picked:null, done:{}, left:360 };
+  nav("quiz"); startTimer();
+}
+var timerId=null;
+function startTimer(){ stopTimer(); timerId=setInterval(function(){
+  if(!ses || ses.mode!=="timed"){ stopTimer(); return; }
+  ses.left--; var r=$("right");
+  if(r) r.textContent = Math.floor(ses.left/60)+":"+String(ses.left%60).padStart(2,"0");
+  if(ses.left<=0){ stopTimer(); toast("时间到"); }
+},1000); }
+function stopTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
 function startWrong(){
   var ids=S.wrong.slice();
   if(!ids.length){ toast("错题本是空的"); return; }
@@ -245,7 +306,7 @@ function render(){
   var bk=$("back"); if(bk) bk.style.display = (phase==="home"||phase==="outline"||phase==="mine") ? "none":"block";
   $("nav").innerHTML = "";
   if(phase==="home"||phase==="outline"||phase==="mine") setNav([["home","✏️","练习"],["outline","📚","语法"],["mine","👤","我的"]]);
-  var v=$("view");
+  var v=$("view"); v.className="view-in";
   $("right").textContent = "";
 
   if(phase==="home"){
@@ -268,9 +329,12 @@ function render(){
         <div class="tile"><b>${streak()}</b><span>连续天数</span></div>
         <div class="tile"><b>${S.wrong.length}</b><span>错题</span></div>
       </div>
-      <div class="quick">
+      <div class="quick" style="grid-template-columns:repeat(3,1fr)">
+        <button data-act="papers"><span class="ic">📄</span><b>按试卷</b></button>
+        <button data-act="cats"><span class="ic">🗂</span><b>按题型</b></button>
+        <button data-act="timed"><span class="ic">⏱</span><b>限时阅读</b></button>
+        <button data-act="mock"><span class="ic">📝</span><b>模拟考</b></button>
         <button data-act="diag"><span class="ic">🎯</span><b>摸底</b></button>
-        <button data-act="mock"><span class="ic">📄</span><b>模拟考</b></button>
         <button data-act="wronglist"><span class="ic">❌</span><b>错题本</b></button>
       </div>
       <div class="sec"><h3>今天</h3>
@@ -344,7 +408,8 @@ function render(){
       return `<button class="${cls}" data-act="pick" data-k="${k}"><span class="k">${"ABCDEFG"[k]}</span><span>${esc(o)}</span></button>`;
     }).join("");
     v.innerHTML = `
-      <div class="srcrow"><span class="src">${esc(srcOf(i))}${item[7]?" · "+esc(item[7]):""}${NOS[i]?" · 第"+NOS[i]+"题":""}</span></div>
+      <div class="srcrow"><span class="src">${esc(srcOf(i))}${item[7]?" · "+esc(item[7]):""}${NOS[i]?" · 第"+NOS[i]+"题":""}</span>
+        ${ttsOk()?`<button class="go" style="margin-left:auto" data-act="speak" data-w="${esc(item[1])}">🔊 读题</button>`:""}</div>
       ${passageOf(i)?`<details class="passage"><summary>📖 看原文（可上下滑动）</summary><div class="ptext">${esc(passageOf(i))}</div></details>`:""}
       <div class="card"><div class="qtext">${esc(item[1]).replace(/_{3,}/g,'<u>____</u>')}</div></div>
       <div style="margin-top:14px">${optsHTML}</div>
@@ -380,32 +445,82 @@ function render(){
     $("ttl").textContent = "我的";
     var done2=totalDone();
     v.innerHTML = `
-      <div class="sec" style="border:1px solid #5b9dff33">
-        <div style="display:flex;gap:12px;align-items:center">
-          <img src="reward.webp" alt="赞赏码" style="width:92px;height:92px;object-fit:contain;border-radius:12px">
-          <div><div style="font-weight:650">支持作者</div>
-          <div class="hint" style="margin-top:4px">如果语欢帮到了你，可以扫码请我吃个包子。完全自愿。</div></div>
-        </div>
-      </div>
       <div class="tiles">
         <div class="tile"><b>${done2}</b><span>已答对</span></div>
         <div class="tile"><b>${S.wrong.length}</b><span>错题</span></div>
         <div class="tile"><b>${streak()}</b><span>连续天数</span></div>
       </div>
-      <div class="sec"><h3>设置</h3>
-        <div class="row"><span>每天题量</span><input type="number" id="daily" min="5" max="60" value="${S.settings.daily}"></div>
-        <div class="hint" style="margin-top:6px">答对过的题不会在本轮重复出现</div>
-      </div>
       <div class="sec"><h3>数据</h3>
-        <button class="btn ghost" data-act="tab" data-tab="data">备份 / 恢复</button>
+        <button class="btn ghost" data-act="report">本周学习报告</button>
+        <button class="btn ghost" data-act="tab" data-tab="data" style="margin-top:10px">备份 / 恢复</button>
         <button class="btn bad" data-act="reset" style="margin-top:10px">清空全部进度</button>
       </div>
+      <div class="sec"><h3>设置</h3>
+        <div class="row"><span>每天题量</span><input type="number" id="daily" min="5" max="60" value="${S.settings.daily}"></div>
+        <div class="hint" style="margin-top:6px">答对过的题不会重复出现；首页的练习从全部题目里随机抽</div>
+      </div>
+      <div class="sec"><details class="reward"><summary>❤ 支持作者（点开）</summary>
+        <div class="hint" style="margin:10px 0 8px">如果语欢帮到了你，可以扫码请我吃个包子。完全自愿，不影响任何功能。</div>
+        <img src="reward.webp" alt="赞赏码" style="width:100%;max-width:230px;display:block;margin:0 auto;border-radius:14px">
+        <div class="hint center" style="margin-top:8px">微信扫码 · 感谢支持</div>
+      </details></div>
       <div class="sec"><h3>关于</h3>
         <div class="hint">语欢 v${VERSION} · 完全离线 · 开源免费<br>
-        题库 ${QS.length} 题：14 套真题（阅读/七选五/完形/语法填空）+ 分知识点练习 + 短文改错<br>
-        阅读与七选五配全文译文；分知识点题目配题干与选项译文</div>
+        题库 ${QS.length} 题：14 套高考真题 + 分知识点练习<br>
+        阅读与七选五原文完整保留；分知识点题配题干与选项译文</div>
       </div>`;
     var dp=$("daily"); if(dp) dp.onchange=function(){ var n=parseInt(this.value,10); if(isNaN(n)||n<5)n=5; if(n>60)n=60; S.settings.daily=n; save(); render(); };
+    return;
+  }
+
+  if(phase==="report"){
+    $("ttl").textContent = "本周报告";
+    var days=[]; for(var k=6;k>=0;k--){ var dt=new Date(); dt.setDate(dt.getDate()-k); days.push(dateStr(dt)); }
+    var tot=0, rgt=0;
+    days.forEach(function(k){ var l=S.log[k]; if(l){ tot+=(l.n||0); rgt+=(l.r||0); } });
+    var max=1; days.forEach(function(k){ var l=S.log[k]; if(l&&l.n>max) max=l.n; });
+    v.innerHTML = `<div class="hero"><div class="kicker">最近 7 天</div>
+        <div class="big">${tot} 题 · 正确率 ${tot?Math.round(rgt/tot*100):0}%</div>
+        <div class="sub">连续学习 ${streak()} 天</div></div>
+      <div class="sec"><h3>每天题量</h3>
+        ${days.map(function(k,i){
+          var l=S.log[k]||{n:0,r:0};
+          var h=Math.max(6,Math.round((l.n||0)/max*90));
+          return `<div class="row"><span>${k.slice(5)} 周${"日一二三四五六"[new Date(k.split("-")[0],k.split("-")[1]-1,k.split("-")[2]).getDay()]||""}</span>
+            <span class="v"><i style="display:inline-block;height:8px;width:${h}px;background:var(--acc);border-radius:4px;margin-right:8px;vertical-align:middle"></i>${l.n||0} 题 · ${l.r&&l.n?Math.round(l.r/l.n*100):0}%</span></div>`;
+        }).join("")}
+      </div>
+      <div class="sec"><h3>进度</h3>
+        <div class="row"><span>已答对</span><span class="v">${totalDone()} / ${QS.length}</span></div>
+        <div class="row"><span>错题本</span><span class="v">${S.wrong.length} 题</span></div>
+      </div>`;
+    return;
+  }
+
+  if(phase==="papers"){
+    $("ttl").textContent = "按试卷练";
+    var srcs={}; QS.forEach(function(q){ if(/^20\d\d/.test(q[5]||"")) srcs[q[5]]=(srcs[q[5]]||0)+1; });
+    var keys=Object.keys(srcs).sort();
+    $("right").textContent = keys.length+" 套";
+    v.innerHTML = keys.map(function(k){
+      var done=0,total=0; for(var i=0;i<QS.length;i++){ if((QS[i][5]||"")===k){ total++; if(isDone(i)) done++; } }
+      return `<div class="point" style="background:var(--card);border-radius:16px;margin-bottom:10px;border:0" data-act="paper" data-s="${esc(k)}">
+        <div class="nm"><div>${esc(k)}</div><div class="hint">${done}/${total} 题已答对</div></div>
+        <span class="go">练</span></div>`;
+    }).join("");
+    return;
+  }
+
+  if(phase==="cats"){
+    $("ttl").textContent = "按题型练";
+    var cats=["真题·阅读","真题·七选五","真题·完形","真题·语法填空","短文改错"];
+    v.innerHTML = cats.map(function(c){
+      var ids=[]; for(var i=0;i<QS.length;i++){ if(QS[i][0]===c) ids.push(i); }
+      var done=ids.filter(isDone).length;
+      return `<div class="point" style="background:var(--card);border-radius:16px;margin-bottom:10px;border:0" data-act="catp" data-c="${esc(c)}">
+        <div class="nm"><div>${esc(c.replace("真题·",""))}</div><div class="hint">${done}/${ids.length} 题已答对</div></div>
+        <span class="go">练</span></div>`;
+    }).join("");
     return;
   }
 
@@ -462,6 +577,13 @@ document.addEventListener("click", function(ev){
   if(act==="mock"){ startMock(); return; }
   if(act==="daily"){ startDaily(); return; }
   if(act==="wrong"){ startWrong(); return; }
+  if(act==="papers"){ nav("papers"); return; }
+  if(act==="cats"){ nav("cats"); return; }
+  if(act==="paper"){ startPaper(el.getAttribute("data-s")); return; }
+  if(act==="catp"){ startRealCat(el.getAttribute("data-c")); return; }
+  if(act==="timed"){ startTimed(); return; }
+  if(act==="speak"){ speakText(el.getAttribute("data-w")); return; }
+  if(act==="report"){ nav("report"); return; }
   if(act==="wronglist"){ nav("wronglist"); return; }
   if(act==="detailQ"){ ui.qid=parseInt(el.getAttribute("data-q"),10); nav("detailQ"); return; }
   if(act==="clearwrong"){ askConfirm("清空错题本","只会清空错题记录，不影响已答对进度。","清空",function(){ S.wrong=[]; save(); nav("home"); toast("已清空"); }); return; }
