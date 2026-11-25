@@ -1,0 +1,24 @@
+name: 题目反馈
+description: 选项、答案、解析或译文有问题
+labels: [content]
+body:
+  - type: input
+    id: source
+    attributes:
+      label: 题目来源
+      description: 年份 / 卷别 / 题号，或知识点名称
+      placeholder: 2023·新课标I卷 第 24 题
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 问题描述
+      description: 选项错误 / 答案有误 / 解析不准确 / 翻译不通顺 / 知识点标错
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: 你的判断（可选）
+      description: 你觉得正确答案或正确解析是什么

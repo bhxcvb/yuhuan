@@ -4,15 +4,18 @@
 
 # 语欢 · 高考英语语法刷题
 
-**不背单词，只练语法。** 14 套高考真题拆成 1670 道题，按 51 个语法点组织，每题都有「考点 + 依据 + 排除」的解析。
+**不背单词，只练语法。** 把 14 套高考真题拆成 1670 道题，按 51 个语法点组织；每道题都有「考点 + 依据 + 排除」的解析，阅读与完形配全文译文。
 
 [![License](https://img.shields.io/badge/license-MIT-5b9dff?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-6.11-8f7bff?style=flat-square)](https://github.com/bhxcvb/yuhuan/releases)
-[![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Web-3ecf8e?style=flat-square)](#5-usage)
-[![Offline](https://img.shields.io/badge/offline-100%25-3ecf8e?style=flat-square)](#1-overview)
+[![Version](https://img.shields.io/badge/version-6.13-8f7bff?style=flat-square)](https://github.com/bhxcvb/yuhuan/releases)
+[![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS%20%7C%20Windows-3ecf8e?style=flat-square)](#5-usage)
 [![CI](https://img.shields.io/github/actions/workflow/status/bhxcvb/yuhuan/check.yml?style=flat-square&label=CI)](https://github.com/bhxcvb/yuhuan/actions)
 
-[▶️ 15 秒宣传片](https://github.com/bhxcvb/yuhuan/releases/download/v6.11/yuhuan-promo-15s.mp4) · [安装教程](docs/INSTALL.md) · [官网](https://bhxcvb.github.io/yuhuan/) · [网页版](https://bhxcvb.github.io/yuhuan/web/) · [下载](https://github.com/bhxcvb/yuhuan/releases) · [更新日志](CHANGELOG.md) · [反馈](https://github.com/bhxcvb/yuhuan/issues)
+### [▶️ 在线体验（不用下载）](https://bhxcvb.github.io/yuhuan/web/)
+
+[▶️ 15 秒宣传片](https://github.com/bhxcvb/yuhuan/releases/download/v6.11/yuhuan-promo-15s.mp4) · [📦 下载 APK](https://github.com/bhxcvb/yuhuan/releases) · [📖 安装教程](docs/INSTALL.md) · [🏠 官网](https://bhxcvb.github.io/yuhuan/) · [📝 更新日志](CHANGELOG.md) · [🐛 反馈](https://github.com/bhxcvb/yuhuan/issues)
+
+**完全离线**：不联网、不申请权限、无账号、无广告。（只有「检查更新」会访问 GitHub，可在设置里关闭）
 
 </div>
 
@@ -60,7 +63,7 @@
 | 🀄 | **全文译文** | 阅读/七选五全文、完形整篇译文，答题后公布 |
 | ✍️ | **写作范文** | 14 篇高分范文：英文 + 译文 + 要点 + 提示 |
 | 🔤 | **首页查词** | 输入英文联想单词，**输入中文反查英文**（如「网络」→ network、「因为」→ because of） |
-| 📖 | **生词本** | 长按任意英文单词弹卡片，一键收录；内置 26,883 词离线词典 |
+| 📖 | **生词本** | 长按任意英文单词弹卡片，一键收录；内置 27,970 词离线词典 |
 | 📊 | **学习数据** | 周报、模块掌握度条形图、8 个成就徽章、高考倒计时 |
 | 🌗 | **主题** | 日间 / 夜间 + 6 种主题色 |
 | 💾 | **备份** | 一键复制 JSON，换设备粘贴恢复 |
@@ -107,7 +110,7 @@
 
 | 平台 | 怎么装 | 体积 | 需要什么 |
 |---|---|---|---|
-| **Android** | 下载 [APK](https://github.com/bhxcvb/yuhuan/releases/download/v6.11/yuhuan-v6.11.apk)，允许未知来源安装 | 1.3 MB | 无 |
+| **Android** | 下载 [APK](https://github.com/bhxcvb/yuhuan/releases/download/v6.11/yuhuan-v6.11.apk)，允许未知来源安装 | 1.9 MB | 无 |
 | **iPhone / iPad** | Safari 打开[网页版](https://bhxcvb.github.io/yuhuan/web/) → 分享 → **添加到主屏幕** | 0（浏览器缓存） | 无 |
 | **Windows（推荐）** | Edge/Chrome 打开网页版 → 地址栏 **安装** 图标 | 0 | 系统自带浏览器 |
 | **Windows（独立包）** | 下载 [yuhuan-windows-x64.zip](https://github.com/bhxcvb/yuhuan/releases/download/v6.11/yuhuan-windows-x64.zip)，解压双击 `语欢.exe` | 100 MB | 无（自带浏览器） |

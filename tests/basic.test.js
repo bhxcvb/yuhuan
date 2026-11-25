@@ -177,6 +177,27 @@ ok(isCJK('网络')&&!isCJK('network'),'中英文判断');
   ok(suggestCNHTML('网络').indexOf('network')>=0,'中文结果渲染到页面');
 })();
 
+/* ========== J3. 导航栈与完形整篇 ========== */
+(function(){
+  S.seenGuide=true; save();
+  navRoot('home');
+  nav('outline'); nav('mine');
+  ok(navStack.length===2,'导航栈记录 2 层');
+  navRoot('home'); ok(navStack.length===0,'回首页清空栈');
+  phase='home'; render(); startPoint('一般现在时');
+  ok(phase==='quiz','进入练习');
+  backPage(); ok(phase==='home','退出练习回首页');
+  nav('outline'); ui.openMod='时态'; render();
+  ui.detail='一般现在时'; nav('detail'); startPoint('一般现在时');
+  backPage(); ok(phase==='detail','从知识点进入的练习退回知识点');
+  var cg=passGroups('真题·完形','2026·全国二卷');
+  ok(cg.length===1 && cg[0].ids.length===15,'完形按篇分组 15 题');
+  startBlock(cg[0].ids,'完形'); ok(phase==='block','完形进入整篇模式');
+  ok(intDays(2)>0,'复习间隔函数');
+  S.settings.reviewIntensity='tight'; ok(intDays(5)===7,'紧凑档生效');
+  S.settings.reviewIntensity='normal'; ok(intDays(5)===15,'标准档生效');
+})();
+
 /* ========== K. 更新检查 ========== */
 global.XMLHttpRequest=function(){
   this.open=function(){}; this.send=function(){ this.status=200;
