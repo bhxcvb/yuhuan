@@ -196,6 +196,14 @@ ok(isCJK('网络')&&!isCJK('network'),'中英文判断');
   S.settings.reviewIntensity='normal'; ok(intDays(5)===15,'标准档生效');
 })();
 
+/* ========== J4. 知识点关联 ========== */
+(function(){
+  ok(Object.keys(REL).length===51,'关联表覆盖 51 个知识点');
+  ok(REL['定语从句：关系代词'].length>=3,'关系代词有 3 个以上相邻考点');
+  ok(REL['虚拟语气：与现在相反'].indexOf('虚拟语气：与过去相反')>=0,'虚拟语气相关关系正确');
+  for(var k in REL){ ok(Array.isArray(REL[k])&&REL[k].length<=4,'关联数量不超过 4：'+k); }
+})();
+
 /* ========== K. 更新检查 ========== */
 global.XMLHttpRequest=function(){
   this.open=function(){}; this.send=function(){ this.status=200;
