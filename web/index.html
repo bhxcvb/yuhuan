@@ -190,7 +190,7 @@ var REASONS = [["concept","概念不清"],["careless","粗心"],["reading","没�
 var INT_DAYS = [1,1,2,4,7,15,30];
 var INT_MULT = { loose:[3,3,5,8,14,30,60], normal:[1,1,2,4,7,15,30], tight:[1,1,1,2,3,7,15] };
 function intDays(box){ var m=INT_MULT[S.settings.reviewIntensity]||INT_MULT.normal; return m[Math.min(box,6)]; }
-var VERSION = "6.13";
+var VERSION = "6.14";
 var KEY = "yuhuan_v6";
 var OLD_KEYS = ["yuhuan_v5","grammar_v5"];
 
@@ -231,6 +231,7 @@ function loadStore(){
   if(typeof S.settings.accent!=="string") S.settings.accent="blue";
   if(typeof S.settings.checkUpdate!=="boolean") S.settings.checkUpdate=true;
   if(typeof S.settings.reviewIntensity!=="string") S.settings.reviewIntensity="normal";
+  if(typeof S.settings.level!=="string") S.settings.level="normal";
   if(!S.log) S.log={};
   if(!S.errors) S.errors=[]; if(!S.wrong) S.wrong=[]; if(!S.rev) S.rev={}; if(!S.reason) S.reason={}; if(!S.words) S.words=[]; if(!S.ach) S.ach=[];
   if(migrated) save();
@@ -324,8 +325,8 @@ function openFeedback(){
   var q=QS[qid];
   var info="题目："+q[1]+"\n选项："+(q[2]||[]).join(" / ")+"\n答案："+("ABCDEFG"[q[3]])+"\n来源："+(q[5]||"仿真")+(NOS[qid]?" 第"+NOS[qid]+"题":"")+"\n解析："+(q[4]||"");
   $("stitle").textContent="这题有问题？";
-  $("stext").textContent="复制题目信息后到 GitHub Issue 反馈，或者直接粘贴给我。\n\n"+info;
-  $("sok").textContent="复制并打开 Issue";
+  $("stext").textContent="点下面「复制反馈」把题目信息复制下来，直接发到微信/QQ 给我即可；也可以提交到 GitHub Issue。\n\n"+info;
+  $("sok").textContent="复制反馈内容";
   pendingOk=function(){
     try{
       var ta=document.createElement("textarea"); ta.value=info; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
@@ -480,6 +481,13 @@ function totalDone(){ var d=0; for(var i=0;i<QS.length;i++) if(isDone(i)) d++; r
 function masteredPoints(){ var n=0; for(var i=0;i<POINTS.length;i++){ var pr=pointProgress(POINTS[i][0]); if(pr.total>0&&pr.done>=pr.total) n++; } return n; }
 function todayCount(){ var l=S.log[dateKey()]; return l?l.n:0; }
 function streak(){ function has(k){ var l=S.log[k]; return !!(l&&l.n); } var d=new Date(); if(!has(dateKey(d))) d.setDate(d.getDate()-1); var n=0; for(var i=0;i<5000;i++){ if(!has(dateKey(d))) break; n++; d.setDate(d.getDate()-1);} return n; }
+function stageInfo(){
+  var dl=daysLeft(), done=totalDone(), ratio=QS.length?done/QS.length:0, mastered=masteredPoints();
+  if(dl!==null && dl<=14) return {key:"review",name:"复习阶段",desc:"考前两周：只做错题和真题回顾",color:"var(--warn)"};
+  if(dl!==null && dl<=45) return {key:"sprint",name:"冲刺阶段",desc:"真题整套 + 模拟考，练考场节奏",color:"var(--bad)"};
+  if(ratio<0.35) return {key:"basic",name:"基础阶段",desc:"按知识点打底，先补高频语法",color:"var(--acc)"};
+  return {key:"strengthen",name:"强化阶段",desc:"针对薄弱点补强，配合真题",color:"var(--good)"};
+}
 function daysLeft(){ var s=S.settings.examDate; if(!s) return null; var t=new Date(s+"T00:00:00"); if(isNaN(t.getTime())) return null; var n=new Date(); n.setHours(0,0,0,0); var dd=Math.round((t-n)/86400000); return dd>=0?dd:0; }
 function paperDone(src){ var ids=[]; for(var i=0;i<QS.length;i++) if((QS[i][5]||"")===src) ids.push(i); if(!ids.length) return 0; var d=0; for(var k=0;k<ids.length;k++) if(isDone(ids[k])) d++; return d/ids.length; }
 
@@ -778,7 +786,9 @@ function render(){
         '<div id="hres"></div>'+
       '</div>'+
       '<div class="plan">'+
-        '<div class="kicker" style="font-size:12px;color:var(--acc)">'+'今日计划'+(dl!==null?" · 距考试 "+dl+" 天":"")+'</div>'+
+        (function(){var st=stageInfo();return '<div class="kicker" style="font-size:12px;color:var(--acc)">'+
+            '<span style="background:'+st.color+'22;border:1px solid '+st.color+'55;border-radius:20px;padding:2px 10px;color:'+st.color+'">'+st.name+'</span>'+
+            '<span style="margin-left:8px">今日计划'+(dl!==null?" · 距考试 "+dl+" 天":"")+'</span></div>';})()+
         '<div class="big" style="font-size:21px;font-weight:680;margin-top:4px">'+planTitle+'</div>'+
         '<div class="row2">'+
           '<div class="cell"><b>'+due+'</b><span>待复习</span></div>'+
@@ -902,7 +912,12 @@ function render(){
       (item[6]?'<details class="passage"><summary>📖 看原文（可上下滑动）</summary><div class="ptext" id="ptext" data-word="1">'+esc(item[6])+'</div></details>':"")+
       '<div class="card"><div class="qtext" data-word="1">'+esc(item[1]).replace(/_{3,}/g,"<u>____</u>")+'</div></div>'+
       '<div style="margin-top:14px">'+optsHTML+'</div>'+
-      (showAns?'<div class="why"><b>解析：</b>'+esc(item[4])+'</div>'+
+      (showAns?'<div class="sec" style="padding:10px 12px;margin-top:12px"><div class="chips" style="margin:0">'+
+          (item[7]?'<button class="chip" data-act="detail" data-p="'+esc(item[7])+'">考点：'+esc(item[7])+'</button>':'')+
+          '<span class="chip">来源：'+esc(item[5]||"仿真")+'</span>'+
+        '</div></div>'+
+        '<div class="why"><b>解析：</b>'+esc(item[4])+'</div>'+
+        ((item[7]&&KB[item[7]]&&KB[item[7]].trap)?'<details class="passage" style="margin-top:10px"><summary>⚠️ 这个知识点的易混点</summary><div class="ptext" style="max-height:30vh">'+esc(KB[item[7]].trap)+'</div></details>':'')+
         (tr&&tr.p?'<div class="trbox"><div class="trh">原文译文</div><div class="trq" style="white-space:pre-wrap">'+esc(tr.p)+'</div></div>':"")+
         ((item[0]==="真题·完形"&&CLOZE[item[5]])?'<div class="trbox"><div class="trh">完形全文译文</div><div class="trq" style="white-space:pre-wrap">'+esc(CLOZE[item[5]])+'</div></div>':"")+
         (tr?'<div class="trbox"><div class="trh">译文</div>'+(tr.q?'<div class="trq"><b>题目：</b>'+esc(tr.q)+'</div>':"")+((tr.o||[]).map(function(t,k){return '<div class="tro"><b>'+"ABCDEFG"[k]+'.</b> '+esc(t)+'</div>';}).join(""))+'</div>':"")+
@@ -910,6 +925,21 @@ function render(){
         '<button class="btn good" data-act="next" style="margin-top:14px">'+(ses.i+1>=ses.list.length?"看结果":"下一题")+'</button>'+
         '<div class="btns" style="margin-top:10px"><button class="btn ghost" data-act="skip">跳过这题</button><button class="btn ghost" data-act="feedback">这题有问题</button></div>'
       :"");
+    return;
+  }
+
+  if(phase==="result" && ses && ses.mode==="diag"){
+    $("ttl").textContent="摸底结果";
+    var weak=weakList().slice(0,3);
+    var pctd=ses.right+ses.wrong?(Math.round(ses.right/(ses.right+ses.wrong)*100)):0;
+    v.innerHTML='<div class="hero center"><div style="font-size:44px">🎯</div><div class="big">摸底完成</div>'+
+      '<div class="sub">20 题答对 '+ses.right+' 题 · 正确率 '+pctd+'%</div></div>'+
+      '<div class="sec"><h3>你最需要补的 3 个知识点</h3>'+
+        weak.map(function(w,i){
+          return '<div class="point" style="padding:10px 0;border:0"><div class="nm"><div>'+(i+1)+'. '+esc(w.p)+'</div><div class="hint">'+esc(w.mod)+' · 已对 '+w.done+'/'+w.total+'</div></div><button class="go" data-act="prac" data-p="'+esc(w.p)+'">练</button></div>';
+        }).join("")+'</div>'+
+      '<button class="btn" data-act="makeplan">生成每日学习计划</button>'+
+      '<button class="btn ghost" data-act="weak" style="margin-top:10px">查看全部薄弱点</button>';
     return;
   }
 
@@ -929,6 +959,9 @@ function render(){
     $("ttl").textContent="我的";
     var done2=totalDone(), pts=weakPoints(8);
     v.innerHTML='<div class="tiles"><div class="tile"><b>'+done2+'</b><span>已答对</span></div><div class="tile"><b>'+S.wrong.length+'</b><span>错题</span></div><div class="tile"><b>'+streak()+'</b><span>连续天数</span></div></div>'+
+      '<div class="sec"><h3>等级</h3>'+
+        '<div class="row"><span>当前等级</span><span class="v">Lv.'+Math.min(10,Math.floor(totalDone()/Math.max(1,QS.length)*10)+1)+' · 已答对 '+totalDone()+'/'+QS.length+'</span></div>'+
+        '<div class="bar"><i style="width:'+Math.round(totalDone()/QS.length*100)+'%"></i></div></div>'+
       '<div class="sec"><h3>外观</h3>'+
         '<div class="row"><span>主题</span><span class="v">'+(S.settings.theme==="light"?"日间":"夜间")+'</span></div>'+
         '<div class="hint" style="margin:8px 0 4px">主题色</div>'+
@@ -1057,10 +1090,17 @@ function render(){
   if(phase==="wronglist"){
     $("ttl").textContent="错题本"; $("right").textContent=S.wrong.length+" 题";
     var rf=ui.wf||"";
+    var ptStat={}, rsStat={};
+    S.wrong.forEach(function(i){ var p=QS[i][7]||"未分类"; ptStat[p]=(ptStat[p]||0)+1;
+      var r=S.reason[i]||{}; for(var k in r){ if(r[k]) rsStat[k]=(rsStat[k]||0)+r[k]; } });
+    var topPts=Object.keys(ptStat).sort(function(a,b){return ptStat[b]-ptStat[a];}).slice(0,3);
+    var statHTML= topPts.length? '<div class="sec" style="padding:14px"><h3>最易错的知识点</h3>'+
+      topPts.map(function(p,k){ return '<div class="point" style="padding:8px 0;border:0"><div class="nm">'+(k+1)+'. '+esc(p)+'</div><div class="pg">'+ptStat[p]+' 题</div><button class="go" data-act="prac" data-p="'+esc(p)+'">重练</button></div>'; }).join("")+
+      '<div class="hint" style="margin-top:6px">错因：'+REASONS.map(function(r){return r[1]+' '+(rsStat[r[0]]||0);}).join(" · ")+'</div></div>' : "";
     var wlist=S.wrong.filter(function(i){ if(!rf) return true; var r=S.reason[i]||{}; return !!r[rf]; });
     var filters='<div class="chips" style="margin-bottom:12px"><button class="chip'+(rf?"":" on")+'" data-act="wfilter" data-r="">全部</button>'+REASONS.map(function(r){return '<button class="chip'+(rf===r[0]?" on":"")+'" data-act="wfilter" data-r="'+r[0]+'">'+r[1]+'</button>';}).join("")+'</div>';
-    if(!S.wrong.length){ v.innerHTML='<div class="hero center"><div class="big">还没有错题</div><div class="sub">做错的题会自动收进来，并按间隔复习</div></div>'; return; }
-    v.innerHTML=filters+wlist.slice(0,60).map(function(i4){
+    if(!S.wrong.length){ v.innerHTML='<div class="hero center"><div style="font-size:40px">🎯</div><div class="big">还没有错题</div><div class="sub">做错的题会自动收进来，并按间隔复习</div></div>'; return; }
+    v.innerHTML=statHTML+filters+wlist.slice(0,60).map(function(i4){
         var r=S.reason[i4]||{}, rtxt=[];
         for(var k in r){ if(r[k]){ var nm=""; for(var z=0;z<REASONS.length;z++) if(REASONS[z][0]===k) nm=REASONS[z][1]; rtxt.push(nm+"×"+r[k]); } }
         return '<div class="card" style="padding:14px;margin-bottom:10px;border-radius:16px" data-act="showQ" data-q="'+i4+'">'+
@@ -1146,6 +1186,24 @@ function render(){
     return;
   }
 
+  if(phase==="path"){
+    var st=stageInfo(), dl=daysLeft();
+    $("ttl").textContent="学习路径";
+    var acts={
+      basic:[["每日新题","按知识点打底，先补高频语法","today"],["摸底诊断","看看哪几个模块最弱","diag"],["薄弱知识点","逐个击破","weak"]],
+      strengthen:[["今日学习","复习到期题 + 新题","today"],["薄弱知识点","只练正确率低的点","weak"],["按题型练","阅读/完形/七选五专项","cats"]],
+      sprint:[["按试卷练","整卷 45 分钟，练节奏","papers"],["模拟考","20 题计时，折算 150 分","mock"],["错题本","冲刺阶段重点","wronglist"]],
+      review:[["错题本","考前只看错题","wronglist"],["复习到期题","间隔复习队列","review"],["限时阅读","保持手感 6 分钟","timed"]]
+    }[st.key]||[];
+    v.innerHTML='<div class="hero"><div class="kicker">当前阶段</div><div class="big" style="color:'+st.color+'">'+st.name+'</div>'+
+      '<div class="sub">'+st.desc+(dl!==null?" · 距考试 "+dl+" 天":"")+'</div></div>'+
+      '<div class="sec"><h3>这个阶段做什么</h3>'+acts.map(function(a){
+        return '<div class="point" style="padding:10px 0;border:0"><div class="nm"><div>'+a[0]+'</div><div class="hint">'+a[1]+'</div></div><button class="go" data-act="'+a[2]+'">去</button></div>';
+      }).join("")+'</div>'+
+      '<div class="hint center">四个阶段：基础 → 强化 → 冲刺 → 复习，按距考试天数和掌握度自动切换。</div>';
+    return;
+  }
+
   if(phase==="weak"){
     $("ttl").textContent="薄弱知识点";
     var wl=weakList().filter(function(x){ return x.acc<0.85; });
@@ -1189,11 +1247,16 @@ function render(){
 
   if(phase==="guide"){
     $("ttl").textContent="怎么用";
-    v.innerHTML='<div class="hero"><div class="kicker">欢迎使用语欢</div><div class="big">三步开始</div></div>'+
-      '<div class="sec"><h3>1 · 先做 20 题摸底</h3><div class="hint">不用背规则，做题暴露薄弱点，之后只补不会的。</div></div>'+
-      '<div class="sec"><h3>2 · 每天按计划练</h3><div class="hint">首页的「开始今日学习」会先复习到期的题，再出新题；答对过的不会重复出现。</div></div>'+
-      '<div class="sec"><h3>3 · 看解析和译文</h3><div class="hint">每题都有考点、依据、干扰项排除；阅读原文的译文在答完后公布。</div></div>'+
-      '<button class="btn" data-act="diag">先摸底 20 题</button><button class="btn ghost" data-act="home" style="margin-top:10px">直接开始</button>';
+    var lv=ui.level||S.settings.level||"normal";
+    v.innerHTML='<div class="hero"><div class="kicker">欢迎使用语欢</div><div class="big">两分钟，找到你的起点</div>'+
+      '<div class="sub">先选一个当前水平，做 20 题摸底，然后我们告诉你该练什么。</div></div>'+
+      '<div class="sec"><h3>1 · 你的水平</h3><div class="chips">'+
+        [["basic","基础：语法点还不太清"],["normal","中等：能做题但常错"],["advanced","冲刺：只差查漏补缺"]].map(function(x){
+          return '<button class="chip'+(lv===x[0]?" on":"")+'" data-act="level" data-v="'+x[0]+'">'+x[1]+'</button>';
+        }).join("")+'</div></div>'+
+      '<div class="sec"><h3>2 · 20 题摸底</h3><div class="hint">覆盖 8 大语法模块，做完立刻看到薄弱点，并自动生成每日计划。</div></div>'+
+      '<div class="sec"><h3>3 · 之后每天</h3><div class="hint">「开始今日学习」会先复习到期题、再出新题；答对过的不再重复。</div></div>'+
+      '<button class="btn" data-act="diag">开始摸底（20 题）</button><button class="btn ghost" data-act="home" style="margin-top:10px">跳过，直接开始</button>';
     return;
   }
 
@@ -1248,6 +1311,15 @@ document.addEventListener("click", function(ev){
   if(act==="lookup"){ openWordSheet(el.getAttribute("data-w"), ""); return; }
   if(act==="openupd"){ try{ window.open(UPD.url||"https://github.com/bhxcvb/yuhuan/releases","_blank"); }catch(e){ toast("请到 Releases 页面下载"); } return; }
   if(act==="weak"){ nav("weak"); return; }
+  if(act==="path"){ nav("path"); return; }
+  if(act==="level"){ ui.level=el.getAttribute("data-v")||"normal"; S.settings.level=ui.level; save(); render(); return; }
+  if(act==="makeplan"){
+    var lv2=S.settings.level||"normal";
+    var daily={basic:8,normal:12,advanced:20}[lv2]||12;
+    S.settings.daily=daily; save();
+    toast("已生成每日计划：" + daily + " 题/天");
+    navRoot("home"); return;
+  }
   if(act==="rspan"){ ui.reportSpan=parseInt(el.getAttribute("data-v"),10)||7; render(); return; }
   if(act==="intensity"){ S.settings.reviewIntensity=el.getAttribute("data-v")||"normal"; save(); render(); toast("复习强度已改为"+({tight:"紧凑",normal:"标准",loose:"宽松"}[S.settings.reviewIntensity])); return; }
   if(act==="feedback"){ openFeedback(); return; }

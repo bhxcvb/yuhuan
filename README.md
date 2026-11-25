@@ -7,7 +7,7 @@
 **不背单词，只练语法。** 把 14 套高考真题拆成 1670 道题，按 51 个语法点组织；每道题都有「考点 + 依据 + 排除」的解析，阅读与完形配全文译文。
 
 [![License](https://img.shields.io/badge/license-MIT-5b9dff?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-6.13-8f7bff?style=flat-square)](https://github.com/bhxcvb/yuhuan/releases)
+[![Version](https://img.shields.io/badge/version-6.14-8f7bff?style=flat-square)](https://github.com/bhxcvb/yuhuan/releases)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS%20%7C%20Windows-3ecf8e?style=flat-square)](#5-usage)
 [![CI](https://img.shields.io/github/actions/workflow/status/bhxcvb/yuhuan/check.yml?style=flat-square&label=CI)](https://github.com/bhxcvb/yuhuan/actions)
 
