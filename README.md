@@ -11,7 +11,7 @@
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Web-3ecf8e)](#两种用法)
 [![Offline](https://img.shields.io/badge/offline-100%25-3ecf8e)](#这是干什么的)
 
-[网页版](https://bhxcvb.github.io/yuhuan/) · [下载 APK](https://github.com/bhxcvb/yuhuan/releases) · [更新日志](CHANGELOG.md) · [反馈问题](https://github.com/bhxcvb/yuhuan/issues)
+[官网](https://bhxcvb.github.io/yuhuan/) · [网页版应用](https://bhxcvb.github.io/yuhuan/web/) · [下载 APK](https://github.com/bhxcvb/yuhuan/releases) · [更新日志](CHANGELOG.md) · [反馈问题](https://github.com/bhxcvb/yuhuan/issues)
 
 </div>
 
@@ -30,6 +30,19 @@
 - [数据与版权](#数据与版权)
 - [常见问题](#常见问题)
 - [支持作者](#支持作者)
+
+## 界面
+
+<div align="center">
+
+<img src="screenshots/home.png" width="240" alt="首页">
+<img src="screenshots/quiz.png" width="240" alt="答题">
+<img src="screenshots/answer.png" width="240" alt="解析与译文">
+
+<img src="screenshots/grammar.png" width="240" alt="语法总览">
+<img src="screenshots/papers.png" width="240" alt="按试卷">
+
+</div>
 
 ## 这是干什么的
 
@@ -80,7 +93,7 @@
 **网页版**（手机/电脑浏览器直接打开，可添加到主屏幕）
 
 ```
-https://bhxcvb.github.io/yuhuan/
+https://bhxcvb.github.io/yuhuan/web/
 ```
 
 **Android APK**
@@ -110,7 +123,9 @@ ANDROID_JAR=/path/to/android.jar R8_JAR=/path/to/r8.jar ./build/build-apk.sh
 ## 目录结构
 
 ```
-index.html            完整应用（题库内联，单文件，约 1.4 MB）
+index.html            官网落地页
+web/index.html        完整应用（题库内联，单文件，约 1.4 MB）
+screenshots/          界面截图
 app/                  Android 外壳（MainActivity + Manifest + 图标）
 build/build-apk.sh    一键打包脚本
 docs/banner.png       仓库横幅
