@@ -36,6 +36,7 @@
 <div align="center">
 
 <img src="screenshots/home.png" width="240" alt="首页">
+<img src="screenshots/search.png" width="240" alt="查词联想">
 <img src="screenshots/guide.png" width="240" alt="新手引导">
 <img src="screenshots/quiz.png" width="240" alt="答题">
 <img src="screenshots/answer.png" width="240" alt="解析与译文">
@@ -84,6 +85,7 @@
 | ❌ **错题本** | 自动收录，答对两次移出，可单独重练 |
 | 📊 **本周报告** | 最近 7 天每天题量与正确率 |
 | 📈 **掌握度** | 8 个模块的掌握度条形图、成就系统 |
+| 🔤 **首页查词** | 顶部输入字母实时联想单词，带音标与释义 |
 | 📖 **生词本** | 长按任意英文单词弹出卡片（音标+释义），一键收录；内置 5500+ 词离线词典，支持词形回退 |
 | 💾 **备份** | 一键复制 JSON，换设备粘贴恢复 |
 | 🌗 **主题** | 日间 / 夜间 + 6 种主题色（蓝/紫/绿/橙/玫红/青） |

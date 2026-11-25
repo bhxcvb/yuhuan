@@ -254,6 +254,35 @@ function lookup(w){
 }
 function meanOf(w){ var r=lookup(w); return r? r.d.t : ""; }
 
+/* ---------- 查词联想 ---------- */
+var WORDSORT=null;
+function wordList(){ if(!WORDSORT){ WORDSORT=Object.keys(DICT).sort(); } return WORDSORT; }
+function suggestWords(q,n){
+  q=String(q||"").toLowerCase().trim();
+  if(!q) return [];
+  n=n||12;
+  var list=wordList(), pre=[], sub=[], near=[];
+  for(var i=0;i<list.length;i++){
+    var w=list[i];
+    if(w.indexOf(q)===0){ pre.push(w); if(pre.length>=n) break; }
+    else if(w.indexOf(q)>0){ if(sub.length<n) sub.push(w); }
+    else if(q.length>=2 && w.indexOf(q.slice(0,2))===0 && Math.abs(w.length-q.length)<=2){ if(near.length<n) near.push(w); }
+  }
+  return pre.concat(sub, near).slice(0,n);
+}
+function suggestHTML(q){
+  var arr=suggestWords(q);
+  if(!q.trim()) return "";
+  if(!arr.length) return '<div class="sec" style="padding:12px 14px"><div class="hint">没有找到相近的单词</div></div>';
+  return '<div class="sec" style="padding:6px 0">'+
+    arr.map(function(w){
+      var f=DICT[w]||{t:""};
+      return '<div data-act="lookup" data-w="'+esc(w)+'" style="display:flex;gap:10px;align-items:baseline;padding:9px 14px;border-top:1px solid var(--line)">'+
+        '<b style="font-size:15px;min-width:96px">'+esc(w)+'</b>'+
+        '<span class="hint" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((f.t||"").slice(0,30))+'</span></div>';
+    }).join("")+'</div>';
+}
+
 /* ---------- 局部刷新（避免输入时重建页面导致键盘收起） ---------- */
 function searchPointsHTML(kw){
   if(!kw) return "";
@@ -528,6 +557,10 @@ function render(){
     $("right").textContent=done+" / "+QS.length;
     var planTitle = (due||fresh) ? (due? "今天先复习 "+due+" 题":"今天新学 "+fresh+" 题") : "今天的任务完成了";
     v.innerHTML =
+      '<div class="sec" style="padding:12px;margin-bottom:12px">'+
+        '<input class="search" id="hq" style="margin-bottom:0" placeholder="查词：输入字母，实时联想" value="'+esc(ui.hq||"")+'">'+
+        '<div id="hres"></div>'+
+      '</div>'+
       '<div class="plan">'+
         '<div class="kicker" style="font-size:12px;color:var(--acc)">'+'今日计划'+(dl!==null?" · 距考试 "+dl+" 天":"")+'</div>'+
         '<div class="big" style="font-size:21px;font-weight:680;margin-top:4px">'+planTitle+'</div>'+
@@ -562,6 +595,14 @@ function render(){
           return '<div class="point" style="padding:10px 0;border:0"><div class="nm" data-act="detail" data-p="'+esc(w.p)+'">'+esc(w.p)+'</div><div class="pg">'+Math.round(w.acc*100)+'%</div><button class="go" data-act="prac" data-p="'+esc(w.p)+'">练</button></div>';
         }).join("")+
       '</div>';
+    var hq=$("hq");
+    if(hq){
+      var hres=$("hres"); if(hres) hres.innerHTML=suggestHTML(ui.hq||"");
+      hq.oninput=function(){
+        ui.hq=this.value;
+        var box=$("hres"); if(box) box.innerHTML=suggestHTML(this.value);
+      };
+    }
     return;
   }
 
@@ -933,6 +974,7 @@ document.addEventListener("click", function(ev){
   if(act==="writing"){ nav("writing"); return; }
   if(act==="essay"){ ui.essay=parseInt(el.getAttribute("data-k"),10); nav("essay"); return; }
   if(act==="words"){ nav("words"); return; }
+  if(act==="lookup"){ openWordSheet(el.getAttribute("data-w"), ""); return; }
   if(act==="delword"){ var k=parseInt(el.getAttribute("data-k"),10); if(S.words[k]){ S.words.splice(k,1); save(); render(); } return; }
   if(act==="report"){ nav("report"); return; }
   if(act==="home"){ nav("home"); return; }
