@@ -1,0 +1,16 @@
+{
+  "name": "语欢 · 高考英语语法刷题",
+  "short_name": "语欢",
+  "description": "专注英语语法的离线刷题 App：1670 题 / 14 套真题 / 51 个语法点",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0d13",
+  "theme_color": "#0b0d13",
+  "orientation": "portrait",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
