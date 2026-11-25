@@ -5,9 +5,9 @@
 | 方式 | 能不能做 | 说明 |
 |---|---|---|
 | **PWA（推荐）** | ✅ 现在就能用 | Safari → 添加到主屏幕，全屏、离线 |
-| **云端编译 IPA** | ❌ 本仓库做不到 | GitHub 的 macOS 运行器在免费账号上被立即取消（实测「mac-probe」也是 cancelled），需要付费/绑卡 |
+| **GitHub Actions 编译** | ❌ 本仓库做不到 | 实测 macOS 运行器一启动就被取消（含最小探针），是账号计费限制 |
 | **自己 Mac 编译** | ✅ 有 Mac 就行 | 源码已备好，见下 |
-| **第三方 CI 编译** | ✅ 需注册 | Codemagic 免费额度 500 分钟/月，配置见 `codemagic.yaml` |
+| **Codemagic 编译** | ✅ 需注册 | 免费额度 500 分钟/月，配置见 `codemagic.yaml` |
 
 ## 方式一：PWA（不需要 Mac）
 
