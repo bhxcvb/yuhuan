@@ -40,7 +40,7 @@
 <img src="screenshots/answer.png" width="240" alt="解析与译文">
 
 <img src="screenshots/grammar.png" width="240" alt="语法总览">
-<img src="screenshots/papers.png" width="240" alt="按试卷">
+<img src="screenshots/writing.png" width="240" alt="写作范文">
 
 </div>
 
