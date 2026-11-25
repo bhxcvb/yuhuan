@@ -406,6 +406,22 @@ function weakPoints(n){
   arr.sort(function(a,b){ return a.acc-b.acc || b.total-a.total; });
   return arr.slice(0,n||3);
 }
+function freshList(n){
+  var pool=singles().filter(function(i){ return !isDone(i); });
+  shuffle(pool);
+  var out=[], mods={}, i, m;
+  // 第一轮：每个模块最多先取 1 题，保证跨模块
+  for(i=0;i<pool.length && out.length<n;i++){
+    m=QS[pool[i]][0];
+    if(!mods[m]){ mods[m]=1; out.push(pool[i]); }
+  }
+  // 第二轮：剩下的随机补满
+  for(i=0;i<pool.length && out.length<n;i++){
+    if(out.indexOf(pool[i])<0) out.push(pool[i]);
+  }
+  shuffle(out);
+  return out;
+}
 function nextNewList(limit){
   var out=[];
   for(var m=0;m<MODULES.length;m++){
@@ -491,8 +507,9 @@ function duePassageGroups(){
 }
 
 function startToday(){
-  var rev=dueList().filter(function(i){ return !hasPassage(i); }).slice(0,20);
-  var fresh=nextNewList(S.settings.daily).filter(function(i){ return !hasPassage(i); });
+  var rev=dueList().filter(function(i){ return !hasPassage(i); });
+  shuffle(rev); rev=rev.slice(0,20);
+  var fresh=freshList(S.settings.daily);
   var list=rev.concat(fresh.filter(function(i){ return rev.indexOf(i)<0; }));
   if(!list.length){ toast("今天没有单题任务了；阅读请用「复习篇章」"); return; }
   begin("plan","今日学习",list);

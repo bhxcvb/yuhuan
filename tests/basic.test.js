@@ -59,6 +59,10 @@ function poolOf(fn,args){ try{ fn.apply(null,args||[]); }catch(e){ return {err:e
   const r = ses? {list:ses.list.slice(),mode:ses.mode}:{list:[]}; phase='home'; return r; }
 let r;
 r=poolOf(startToday); ok(!r.err&&r.list.length>0&&r.list.every(i=>!QS[i][6]),'今日学习只用单题');
+(function(){
+  var mods={}; r.list.forEach(function(i){ mods[QS[i][0]]=1; });
+  ok(Object.keys(mods).length>=3,'今日学习跨模块随机（'+Object.keys(mods).length+' 个模块）');
+})();
 r=poolOf(startDaily); ok(r.list.length>0&&r.list.every(i=>!QS[i][6]),'随机练习只用单题');
 r=poolOf(startMock); ok(r.list.length===20&&r.list.every(i=>!QS[i][6]),'模拟考只用单题');
 r=poolOf(startDiag); ok(r.list.length===20&&r.list.every(i=>!QS[i][6]),'摸底只用单题');
