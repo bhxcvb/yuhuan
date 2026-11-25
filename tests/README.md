@@ -1,26 +1,37 @@
 # 测试
 
-两个文件，CI 每次 push 自动运行。
+四组测试，CI 每次 push 自动运行前三组。
 
-## 基础回归（无依赖）
+## 1. 题库结构校验
+
+```bash
+node tools/extract-data.js /tmp/data.json     # 从 web/index.html 取出题库
+node tools/validate-data.js /tmp/data.json    # 校验
+```
+
+检查：题目结构、分类、选项数量（七选五 7 个 / 其余 4 个）、选项重复、答案索引、解析长度、知识点是否存在、译文引用、重复题、范文完整性。
+
+## 2. 基础回归（无依赖）
 
 ```bash
 node tests/basic.test.js
 ```
 
-覆盖：题库结构与数量、解析/译文完整性、所有练习入口的出题规则（阅读不进单题流程）、页面渲染、答题流程、错因标记、间隔复习调度、篇章模式、计时、词典与生词本、主题持久化、导入校验等，共 86 项断言。
+172 项断言：题库与词典规模、出题规则（阅读/七选五不进单题流程）、页面渲染、答题流程、错因、间隔复习调度（升箱、连错推后、错因影响）、章节/计时、查词与中文反查、主题与字号、备份与撤销、schema 迁移、重复题隐藏。
 
-## 端到端（需要 Playwright）
+## 3. 端到端（需要 Playwright）
 
 ```bash
 pip install playwright && python3 -m playwright install chromium
 python3 tests/e2e.py
 ```
 
-在真实 Chromium 里跑：新手引导、主题持久化、查词联想、答题与错因、篇章交卷拦截、导入校验、计时、各页面无 JS 报错。
+21 项：真实 Chromium 里的新手引导、主题、查词、答题、篇章交卷、导入校验、计时、无 JS 报错。
 
-## 约定
+## 4. 离线与数据完整性（需要 Playwright）
 
-- 改动 `web/index.html` 后先跑 `node tests/basic.test.js`
-- 新增功能请在 `basic.test.js` 里补断言
-- CI 红灯不要合并
+```bash
+python3 tests/e2e_ext.py
+```
+
+15 项：断网后仍可打开与答题、刷新后进度保持、备份导出/清空/导入/撤销、外部网络请求审计（只允许 GitHub 更新检查）、版本与题库规模。

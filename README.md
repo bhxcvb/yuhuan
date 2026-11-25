@@ -15,9 +15,9 @@
 
 ### [▶️ 在线体验（不用下载）](https://bhxcvb.github.io/yuhuan/web/)
 
-[▶️ 15 秒宣传片](https://github.com/bhxcvb/yuhuan/releases/download/v6.11/yuhuan-promo-15s.mp4) · [📦 下载 APK](https://github.com/bhxcvb/yuhuan/releases) · [📖 安装教程](docs/INSTALL.md) · [🏠 官网](https://bhxcvb.github.io/yuhuan/) · [📝 更新日志](CHANGELOG.md) · [🐛 反馈](https://github.com/bhxcvb/yuhuan/issues)
+[▶️ 15 秒宣传片](https://github.com/bhxcvb/yuhuan/releases/latest/download/yuhuan-promo-15s.mp4) · [📦 下载 APK](https://github.com/bhxcvb/yuhuan/releases) · [📖 安装教程](docs/INSTALL.md) · [🏠 官网](https://bhxcvb.github.io/yuhuan/) · [📝 更新日志](CHANGELOG.md) · [🐛 反馈](https://github.com/bhxcvb/yuhuan/issues)
 
-**完全离线**：不联网、不申请权限、无账号、无广告。（只有「检查更新」会访问 GitHub，可在设置里关闭）
+**完全离线**：做题不需要网络，无账号、无广告、无埋点。（Android 版只申请「网络」权限用于检查更新，可在设置里关闭；朗读用系统 TTS）
 
 </div>
 
@@ -41,9 +41,9 @@
 单词背得再多，语法题该错还是错。语欢练的是**语法本身**：
 
 - **按知识点刷**：51 个语法点各自成池，练「一般现在时」就只出一般现在时的题
-- **按题型刷**：阅读、七选五、完形、语法填空、短文改错
+- **按题型刷**：阅读、七选五、语法填空、短文改错
 - **按试卷刷**：14 套高考真题，按原题号顺序，整篇阅读一次做完
-- **每道题都有解析**：考点 + 原文依据 + 干扰项为什么错；阅读配全文译文
+- **每道题都有解析**：考点 + 原文依据 + 干扰项为什么错；阅读 / 七选五配全文译文
 
 > 目标：**别背规则，做题 → 暴露薄弱点 → 只补不会的。**
 >
@@ -54,23 +54,23 @@
 
 | | 功能 | 说明 |
 |---|---|---|
-| 📚 | **题库 1460 题** | 14 套真题 630 题 + 分知识点题 985 题 + 综合练习 |
+| 📚 | **题库 1460 题** | 14 套真题 420 题（阅读 210 / 七选五 70 / 语法填空 140）+ 分知识点题 1040 题 |
 | 🎯 | **分知识点练** | 51 个语法点各自成池，答对过的不再重复 |
-| 🔁 | **间隔复习** | 答对按 1/1/2/4/7/15/30 天安排；到期的题自动进今日计划 |
+| 🔁 | **间隔复习** | 答对按 1/1/2/4/7/15/30 天安排，答错当天重练、连错两次推到次日；正确率低的题自动缩短间隔；到期的题自动进今日计划 |
 | 📅 | **今日计划** | 先复习到期题，再出新题；按每天题量与考试日期安排 |
-| 🧠 | **错因标记** | 答错标「概念不清 / 粗心 / 没看懂句子」，错题本按原因筛选 |
+| 🧠 | **错因标记** | 答错标「概念不清 / 粗心 / 没看懂句子」，错题本按原因筛选，并影响复习间隔 |
 | 📰 | **整篇作答** | 阅读、七选五整篇一次做完，交卷后才出答案、解析与译文；不进单题流程 |
 | 🔎 | **真题索引** | 每个知识点显示「真题里考过 N 次」，点进去看原题 |
 | ⏱ | **整卷计时** | 按试卷 45 分钟、模拟考 20 分钟、限时阅读 6 分钟，自动交卷并折算 150 分制 |
 | 📖 | **语法知识库** | 51 篇：规则、例句（英文+译文）、常见错误、易混陷阱 |
-| 🀄 | **全文译文** | 阅读/七选五全文、完形整篇译文，答题后公布 |
+| 🀄 | **全文译文** | 阅读 / 七选五全文译文，交卷后公布 |
 | ✍️ | **写作范文** | 14 篇高分范文：英文 + 译文 + 要点 + 提示 |
 | 🔤 | **首页查词** | 输入英文联想单词，**输入中文反查英文**（如「网络」→ network、「因为」→ because of） |
 | 📖 | **生词本** | 长按任意英文单词弹卡片，一键收录；内置 27,970 词离线词典 |
 | 📊 | **学习数据** | 周报、模块掌握度条形图、8 个成就徽章、高考倒计时 |
 | 🌗 | **主题** | 日间 / 夜间 + 6 种主题色 |
-| 💾 | **备份** | 一键复制 JSON，换设备粘贴恢复 |
-| 🔄 | **更新检查** | 打开时静默检查新版本（可在设置关闭），发现新版本首页提示 |
+| 💾 | **备份** | 一键复制 JSON，换设备粘贴恢复；导入前自动备份、可撤销；另有 IndexedDB 自动快照 |
+| 🔄 | **更新检查** | 打开时静默检查新版本（默认开启，可在设置关闭），发现新版本首页提示 |
 | 🧾 | **错误日志** | 本地记录异常，可一键复制用于反馈 |
 
 ## 3. Screenshots
@@ -113,10 +113,10 @@
 
 | 平台 | 怎么装 | 体积 | 需要什么 |
 |---|---|---|---|
-| **Android** | 下载 [APK](https://github.com/bhxcvb/yuhuan/releases/download/v6.11/yuhuan-v6.11.apk)，允许未知来源安装 | 1.9 MB | 无 |
+| **Android** | 在 [最新 Release](https://github.com/bhxcvb/yuhuan/releases/latest) 下载 `yuhuan-v*.apk`，允许未知来源安装 | 1.9 MB | 无 |
 | **iPhone / iPad** | Safari 打开[网页版](https://bhxcvb.github.io/yuhuan/web/) → 分享 → **添加到主屏幕** | 0（浏览器缓存） | 无 |
 | **Windows（推荐）** | Edge/Chrome 打开网页版 → 地址栏 **安装** 图标 | 0 | 系统自带浏览器 |
-| **Windows（独立包）** | 下载 [yuhuan-windows-x64.zip](https://github.com/bhxcvb/yuhuan/releases/download/v6.11/yuhuan-windows-x64.zip)，解压双击 `语欢.exe` | 100 MB | 无（自带浏览器） |
+| **Windows（独立包）** | 按 [desktop/README.md](desktop/README.md) 用 Electron 自行打包（`npm i && npx electron-packager`） | ~270 MB | Node.js |
 | **macOS** | Chrome/Edge 打开网页版 → 安装 | 0 | 无 |
 | **源码运行** | `python3 -m http.server` 后打开 `web/` | — | Python |
 
@@ -174,11 +174,13 @@ DICT[word] = { t: "中文释义", p: "/音标/" }
 **测试**
 
 ```bash
-node tests/basic.test.js                          # 92 项基础回归（无依赖）
-python3 tests/e2e.py                              # 21 项端到端（需 Playwright）
+node tools/extract-data.js /tmp/data.json && node tools/validate-data.js /tmp/data.json   # 题库结构校验
+node tests/basic.test.js          # 172 项基础回归（无依赖）
+python3 tests/e2e.py              # 21 项端到端（需 Playwright）
+python3 tests/e2e_ext.py          # 15 项离线 / 数据完整性 / 备份恢复（需 Playwright）
 ```
 
-CI 每次 push 跑这两个 job：`基础回归`（题库结构、出题规则、答题流程、间隔复习、词典、更新检查、错误日志）和 `端到端`（真实 Chromium 里的交互与无报错）。细节见 [tests/README.md](tests/README.md)。
+CI 每次 push 跑：题库结构校验（答案索引、选项、解析、知识点归属、重复题）、`基础回归`、`端到端`。细节见 [tests/README.md](tests/README.md)。
 
 ## 10. FAQ
 **常见问题**

@@ -202,8 +202,9 @@ var REASONS = [["concept","概念不清"],["careless","粗心"],["reading","没�
 var INT_DAYS = [1,1,2,4,7,15,30];
 var INT_MULT = { loose:[3,3,5,8,14,30,60], normal:[1,1,2,4,7,15,30], tight:[1,1,1,2,3,7,15] };
 function intDays(box){ var m=INT_MULT[S.settings.reviewIntensity]||INT_MULT.normal; return m[Math.min(box,6)]; }
-var VERSION = "6.18";
+var VERSION = "6.19";
 var KEY = "yuhuan_v6";
+var SCHEMA = 3;
 var OLD_KEYS = ["yuhuan_v5","grammar_v5"];
 
 /* ---------- 学习闭环 ---------- */
@@ -227,7 +228,14 @@ function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random
 function dateKey(d){ d=d||new Date(); var p=function(n){return String(n).padStart(2,"0");}; return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
 function addDays(n){ var d=new Date(); d.setDate(d.getDate()+n); return dateKey(d); }
 
-function initStore(){ return {q:{},log:{},wrong:[],rev:{},reason:{},words:[],ach:[],seenGuide:false,diag:false,settings:{theme:"dark",daily:10,examDate:"",checkUpdate:true,reviewIntensity:"normal"}}; }
+function initStore(){ return {q:{},log:{},wrong:[],rev:{},reason:{},words:[],ach:[],seenGuide:false,diag:false,settings:{theme:"dark",daily:10,examDate:"",checkUpdate:true,reviewIntensity:"normal",weekly:70}}; }
+function migrate(S){
+  var from=S.schema||1;
+  if(from<2){ /* v1 → v2：补齐复习强度、等级、字号、趋势 */ }
+  if(from<3){ /* v2 → v3：复习箱增加错误计数 */ }
+  S.schema=SCHEMA;
+  return S;
+}
 function loadStore(){
   var raw=null, migrated=false;
   try{ raw=localStorage.getItem(KEY); }catch(e){}
@@ -244,10 +252,12 @@ function loadStore(){
   if(typeof S.settings.checkUpdate!=="boolean") S.settings.checkUpdate=true;
   if(typeof S.settings.reviewIntensity!=="string") S.settings.reviewIntensity="normal";
   if(typeof S.settings.level!=="string") S.settings.level="normal";
+  if(typeof S.settings.weekly!=="number") S.settings.weekly=Math.max(20,(S.settings.daily||10)*7);
   if(typeof S.settings.fontScale!=="string") S.settings.fontScale="normal";
   if(!S.log) S.log={};
   if(!S.errors) S.errors=[];
   if(!S.trend) S.trend=[]; if(!S.wrong) S.wrong=[]; if(!S.rev) S.rev={}; if(!S.reason) S.reason={}; if(!S.words) S.words=[]; if(!S.ach) S.ach=[];
+  S=migrate(S);
   if(migrated) save();
 }
 function save(){
@@ -494,6 +504,14 @@ function wordResultHTML(q){
   return '<div class="sec" style="padding:14px"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-size:18px;font-weight:650">'+esc(f.w)+'</div>'+(f.d.p?'<div class="hint">'+esc(f.d.p)+'</div>':"")+'</div><div style="margin-top:6px;font-size:14.5px">'+esc(f.d.t)+'</div></div>';
 }
 
+/* ---------- 导入前自动备份 ---------- */
+function autoBackup(tag){
+  try{ localStorage.setItem("yuhuan_"+tag, JSON.stringify(S)); }catch(e){}
+  try{
+    if(window.indexedDB){ idbOpen().then(function(db){ var tx=db.transaction("snap","readwrite"); tx.objectStore("snap").put(JSON.stringify(S),tag); }).catch(function(){}); }
+  }catch(e){}
+}
+
 /* ---------- IndexedDB 自动备份 ---------- */
 var IDB=null;
 function idbOpen(){
@@ -523,7 +541,7 @@ function idbRestore(){
       if(!req.result){ toast("没有找到自动备份"); return; }
       try{
         var o=JSON.parse(req.result);
-        askConfirm("恢复自动备份","自动备份时间未知，会覆盖当前进度，确定？","恢复",function(){
+        askConfirm("恢复自动备份","自动备份时间未知，会覆盖当前进度，确定？","恢复",function(){ autoBackup("pre-restore");
           var th=S.settings.theme, dl=S.settings.daily; S=o; S.settings=S.settings||{}; S.settings.theme=th; S.settings.daily=dl||10; save(); navRoot("home"); toast("已恢复");
         });
       }catch(e){ toast("备份解析失败"); }
@@ -572,14 +590,29 @@ function dueList(){
   return out.filter(function(i){ return i>=0 && i<QS.length; });
 }
 function dueCount(){ return dueList().length; }
-function schedule(i, ok){
-  var rv=S.rev[i]||{box:0,due:dateKey()};
+function schedule(i, ok, reason){
+  var rv=S.rev[i]||{box:0,due:dateKey(),err:0};
+  var q=S.q[i]||{n:0,right:0};
   if(ok){
+    var hadErr=rv.err||0;
     rv.box=Math.min(6,(rv.box||0)+1);
+    if(hadErr>0) rv.box=Math.min(6,rv.box+1);   // 错过又答对，加速恢复
     if(rv.box>=5){ delete S.rev[i]; }
-    else { rv.due=addDays(intDays(rv.box)); S.rev[i]=rv; }
+    else {
+      var base=intDays(rv.box);
+      // 历史正确率低 → 缩短间隔；正确率高 → 放宽
+      var acc=q.n? q.right/q.n : 1;
+      var factor= acc<0.5?0.7 : (acc>0.9?1.15:1.0);
+      rv.due=addDays(Math.max(1,Math.round(base*factor)));
+      rv.err=0; S.rev[i]=rv;
+    }
   } else {
-    rv.box=0; rv.due=dateKey(); S.rev[i]=rv;
+    rv.err=(rv.err||0)+1; rv.box=0;
+    // 第一次错：今天再练一次；连续错两次：推到明天，避免原地打转
+    // 概念不清 → 明天再看；粗心/没看懂 → 今天再练
+    var nextToday = (reason==="concept")? false : (rv.err<2);
+    rv.due = nextToday? dateKey() : addDays(1);
+    S.rev[i]=rv;
   }
 }
 
@@ -682,7 +715,20 @@ function stopTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
 function fmtTime(s){ s=Math.max(0,s); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
 function current(){ return ses&&ses.i<ses.list.length?ses.list[ses.i]:null; }
 function hasPassage(i){ return !!(QS[i]&&QS[i][6]); }
-function singles(){ var a=[]; for(var i=0;i<QS.length;i++) if(!hasPassage(i)) a.push(i); return a; }
+var DUPQ=null;
+function dupSet(){
+  if(DUPQ) return DUPQ;
+  DUPQ={};
+  var seen={};
+  for(var i=0;i<QS.length;i++){
+    var q=QS[i];
+    if(q[0].indexOf("真题·")===0) continue;   // 真题同句正常，不参与去重
+    var k=String(q[1]||"").replace(/\s+/g," ").trim().toLowerCase();
+    if(seen[k]) DUPQ[i]=1; else seen[k]=i;
+  }
+  return DUPQ;
+}
+function singles(){ var a=[], dup=dupSet(); for(var i=0;i<QS.length;i++) if(!hasPassage(i) && !dup[i]) a.push(i); return a; }
 function duePassageGroups(){
   var due=dueList(), byKey={};
   for(var k=0;k<due.length;k++){
@@ -1347,6 +1393,7 @@ function render(){
     var dump=JSON.stringify(S);
     v.innerHTML='<div class="hint" style="margin-bottom:10px">复制下面内容保存；换设备后粘贴回来点「导入」。</div><textarea id="dump">'+esc(dump)+'</textarea>'+
       '<div class="btns" style="margin-top:12px"><button class="btn ghost" data-act="copydata">复制</button><button class="btn good" data-act="importdata">导入</button></div>'+
+      (function(){ try{ return localStorage.getItem("yuhuan_preimport")? '<button class="btn ghost" data-act="undorestore" style="margin-top:10px">撤销上次导入</button>':''; }catch(e){ return ''; } })()+
       '<div class="hint center" style="margin-top:10px">'+Math.round(dump.length/1024)+' KB · '+totalDone()+' 题已答对</div>';
     return;
   }
@@ -1419,6 +1466,7 @@ document.addEventListener("click", function(ev){
   if(act==="weak"){ nav("weak"); return; }
   if(act==="path"){ nav("path"); return; }
   if(act==="stats"){ nav("stats"); return; }
+  if(act==="weekly"){ S.settings.weekly=parseInt(el.getAttribute("data-v"),10)||70; save(); render(); return; }
   if(act==="fontsize"){ S.settings.fontScale=el.getAttribute("data-v")||"normal"; save(); applyFont(); render(); return; }
   if(act==="sspan"){ ui.statSpan=parseInt(el.getAttribute("data-v"),10)||7; render(); return; }
   if(act==="idbrestore"){ idbRestore(); return; }
@@ -1452,7 +1500,7 @@ document.addEventListener("click", function(ev){
     return;
   }
   if(act==="dataclear"){
-    askConfirm("恢复内置题库","会删除导入的题库，学习进度保留。",'恢复',function(){ delete S.dataset; save(); location.reload(); });
+    askConfirm("恢复内置题库","会删除导入的题库，学习进度保留。",'恢复',function(){ autoBackup("pre-dataclear"); delete S.dataset; save(); location.reload(); });
     return;
   }
   if(act==="level"){ ui.level=el.getAttribute("data-v")||"normal"; S.settings.level=ui.level; save(); render(); return; }
@@ -1507,8 +1555,19 @@ document.addEventListener("click", function(ev){
   if(act==="importdata"){
     var ta=$("dump"); if(!ta) return;
     try{ var o=JSON.parse(ta.value); if(!o||!o.q) throw new Error("格式不对");
-      askConfirm("导入数据","会覆盖当前全部进度，确定？","导入",function(){ var th=S.settings.theme,dl=S.settings.daily; S=o; S.settings=S.settings||{}; S.settings.theme=th; S.settings.daily=dl||10; save(); nav("home"); toast("导入成功"); });
+      askConfirm("导入数据","会覆盖当前全部进度。导入前会自动备份当前数据，可撤销。","导入",function(){
+        autoBackup("pre-import");
+        var th=S.settings.theme,dl=S.settings.daily; S=migrate(o); S.settings=S.settings||{}; S.settings.theme=th; S.settings.daily=dl||10; save(); nav("home"); toast("导入成功（可撤销）");
+      });
     }catch(e){ toast("导入失败："+e.message); } return;
+  }
+  if(act==="undorestore"){
+    try{
+      var raw=localStorage.getItem("yuhuan_preimport");
+      if(!raw){ toast("没有可撤销的数据"); return; }
+      askConfirm("撤销导入","恢复到最近一次导入前的数据？","撤销",function(){ S=migrate(JSON.parse(raw)); save(); nav("home"); toast("已撤销导入"); });
+    }catch(e){ toast("撤销失败"); }
+    return;
   }
   if(act==="clearwrong"){ askConfirm("清空错题本","只清空错题记录，不影响已答对进度。","清空",function(){ S.wrong=[]; save(); render(); toast("已清空"); }); return; }
   if(act==="reset"){ askConfirm("清空进度","所有答题记录、错题、生词、成就都会删除，无法恢复。","清空",function(){ var th=S.settings.theme,dl=S.settings.daily,ex=S.settings.examDate; S=initStore(); S.settings.theme=th; S.settings.daily=dl; S.settings.examDate=ex; S.seenGuide=true; save(); nav("home"); toast("已清空"); }); return; }

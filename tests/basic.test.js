@@ -204,6 +204,36 @@ ok(isCJK('网络')&&!isCJK('network'),'中英文判断');
   for(var k in REL){ ok(Array.isArray(REL[k])&&REL[k].length<=4,'关联数量不超过 4：'+k); }
 })();
 
+/* ========== J5. 复习算法与数据安全 ========== */
+(function(){
+  S.seenGuide=true; save();
+  // 复习：答对升箱、错两次推到明天、错因概念不清推到明天
+  var i=singles()[0];
+  delete S.rev[i]; schedule(i,false,"careless");
+  ok(S.rev[i].err===1 && S.rev[i].due===dateKey(),'首次错：当天再练');
+  schedule(i,false,"careless");
+  ok(S.rev[i].err===2 && S.rev[i].due>dateKey(),'连续错两次：推到明天');
+  delete S.rev[i]; schedule(i,false,"concept");
+  ok(S.rev[i].due>dateKey(),'概念不清：推到明天');
+  delete S.rev[i]; schedule(i,true);
+  ok(S.rev[i] && S.rev[i].box===1,'答对升箱到 1');
+  S.rev[i].err=2; schedule(i,true);
+  ok(S.rev[i].box>=2,'错过又答对会加速');
+  // 迁移
+  var old={schema:1,q:{},log:{},wrong:[],rev:{},reason:{},words:[],ach:[]};
+  var m=migrate(old); ok(m.schema===3,'旧数据迁移到 schema 3');
+  // 导入前自动备份
+  autoBackup("pre-import-test");
+  ok(!!localStorage.getItem("yuhuan_pre-import-test"),'导入前备份写入本地');
+  localStorage.removeItem("yuhuan_pre-import-test");
+  // 重复题隐藏
+  ok(Object.keys(dupSet()).length>0,'检测到重复题并隐藏：'+Object.keys(dupSet()).length+' 条');
+  var dupList=Object.keys(dupSet()).map(Number);
+  ok(dupList.every(function(x){return singles().indexOf(x)<0;}),'重复题不在单题池中');
+  // 周目标
+  ok(typeof S.settings.weekly==='number' && S.settings.weekly>0,'每周目标存在：'+S.settings.weekly);
+})();
+
 /* ========== K. 更新检查 ========== */
 global.XMLHttpRequest=function(){
   this.open=function(){}; this.send=function(){ this.status=200;
