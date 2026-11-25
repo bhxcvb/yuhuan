@@ -8,8 +8,8 @@
 
 [![License](https://img.shields.io/badge/license-MIT-5b9dff?style=flat-square)](LICENSE)
 [![Version](https://img.shields.io/badge/version-6.4-8f7bff?style=flat-square)](https://github.com/bhxcvb/yuhuan/releases)
-[![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Web-3ecf8e?style=flat-square)](#usage)
-[![Offline](https://img.shields.io/badge/offline-100%25-3ecf8e?style=flat-square)](#why)
+[![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Web-3ecf8e?style=flat-square)](#user-content-usage)
+[![Offline](https://img.shields.io/badge/offline-100%25-3ecf8e?style=flat-square)](#user-content-why)
 [![CI](https://img.shields.io/github/actions/workflow/status/bhxcvb/yuhuan/check.yml?style=flat-square&label=CI)](https://github.com/bhxcvb/yuhuan/actions)
 
 [官网](https://bhxcvb.github.io/yuhuan/) · [网页版](https://bhxcvb.github.io/yuhuan/web/) · [下载 APK](https://github.com/bhxcvb/yuhuan/releases) · [更新日志](CHANGELOG.md) · [反馈问题](https://github.com/bhxcvb/yuhuan/issues)
@@ -24,10 +24,10 @@
 
 | | | |
 |---|---|---|
-| [① 这是什么](#why) | [② 功能](#features) | [③ 界面](#screenshots) |
-| [④ 语法模块](#grammar) | [⑤ 怎么用](#usage) | [⑥ 本地开发](#dev) |
-| [⑦ 目录结构](#structure) | [⑧ 数据格式](#data) | [⑨ 常见问题](#faq) |
-| [⑩ 支持作者](#support) | [⑪ 许可](#license) | |
+| [① 这是什么](#user-content-why) | [② 功能](#user-content-features) | [③ 界面](#user-content-screenshots) |
+| [④ 语法模块](#user-content-grammar) | [⑤ 怎么用](#user-content-usage) | [⑥ 本地开发](#user-content-dev) |
+| [⑦ 目录结构](#user-content-structure) | [⑧ 数据格式](#user-content-data) | [⑨ 常见问题](#user-content-faq) |
+| [⑩ 支持作者](#user-content-support) | [⑪ 许可](#user-content-license) | |
 
 <a id="why"></a>
 
