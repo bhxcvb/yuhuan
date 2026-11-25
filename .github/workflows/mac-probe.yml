@@ -1,0 +1,11 @@
+name: mac-probe
+on:
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: macos-14
+    steps:
+      - run: |
+          echo "hello from macOS"
+          sw_vers
+          xcodebuild -version
