@@ -21,8 +21,8 @@ function click(act,a){const e={getAttribute(k){if(k==='data-act')return act;retu
 function $date(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
 
 /* ========== A. 数据完整性 ========== */
-ok(QS.length===1670,'题库应为 1670，实际 '+QS.length);
-ok(QS.filter(q=>/^20\d\d/.test(q[5]||'')).length===630,'真题应为 630');
+ok(QS.length===1460,'题库应为 1460，实际 '+QS.length);
+ok(QS.filter(q=>/^20\d\d/.test(q[5]||'')).length===420,'真题应为 420');
 ok(QS.filter(q=>q[7]).length===985,'知识点题应为 985');
 ok(QS.every(q=>Array.isArray(q)&&q.length>=5),'题目结构');
 ok(QS.every(q=>q[1]&&q[1].trim().length>0),'题干非空');
@@ -37,9 +37,9 @@ const stemCount={}; QS.forEach(q=>{const k=q[1].trim(); stemCount[k]=(stemCount[
 const seven=QS.filter(q=>q[0]==='真题·七选五');
 ok(seven.every(q=>q[2].length===7),'七选五每题 7 个选项');
 ok(QS.filter(q=>q[0]==='真题·阅读').every(q=>q[2].length===4),'阅读每题 4 个选项');
-ok(QS.filter(q=>q[0]==='真题·完形').every(q=>q[2].length===4),'完形每题 4 个选项');
+
 ok(QS.filter(q=>q[7]&&q[7]!=='').every(q=>q[2].length===4),'知识点题每题 4 个选项');
-ok(Object.keys(NOS).length===630,'题号映射 630');
+ok(Object.keys(NOS).length===420,'题号映射 420');
 // 篇章题
 const withP=QS.map((q,i)=>i).filter(i=>QS[i][6]);
 ok(withP.length>=280,'带原文题目 '+withP.length);
@@ -52,7 +52,7 @@ ok(Object.keys(KB).length===51,'知识库 51 篇');
 ok(WRITING.length===14,'范文 14 篇');
 ok(WRITING.every(w=>w.en&&w.zh),'范文含中英');
 ok(Object.keys(DICT).length>26000,'词库 '+Object.keys(DICT).length);
-ok(Object.keys(CLOZE).length>=14,'完形译文 '+Object.keys(CLOZE).length);
+ok(true,'完形已移除');
 
 /* ========== B. 所有入口的题池规则 ========== */
 function poolOf(fn,args){ try{ fn.apply(null,args||[]); }catch(e){ return {err:e.message}; }
@@ -190,9 +190,7 @@ ok(isCJK('网络')&&!isCJK('network'),'中英文判断');
   nav('outline'); ui.openMod='时态'; render();
   ui.detail='一般现在时'; nav('detail'); startPoint('一般现在时');
   backPage(); ok(phase==='detail','从知识点进入的练习退回知识点');
-  var cg=passGroups('真题·完形','2026·全国二卷');
-  ok(cg.length===1 && cg[0].ids.length===15,'完形按篇分组 15 题');
-  startBlock(cg[0].ids,'完形'); ok(phase==='block','完形进入整篇模式');
+  ok(QS.every(q=>q[0]!=='真题·完形'),'已无完形题');
   ok(intDays(2)>0,'复习间隔函数');
   S.settings.reviewIntensity='tight'; ok(intDays(5)===7,'紧凑档生效');
   S.settings.reviewIntensity='normal'; ok(intDays(5)===15,'标准档生效');

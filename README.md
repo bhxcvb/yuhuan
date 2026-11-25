@@ -4,10 +4,10 @@
 
 # 语欢 · 高考英语语法刷题
 
-**不背单词，只练语法。** 把 14 套高考真题拆成 1670 道题，按 51 个语法点组织；每道题都有「考点 + 依据 + 排除」的解析，阅读与完形配全文译文。
+**不背单词，只练语法。** 把 14 套高考真题拆成 1460 道题，按 51 个语法点组织；每道题都有「考点 + 依据 + 排除」的解析，阅读与完形配全文译文。
 
 [![License](https://img.shields.io/badge/license-MIT-5b9dff?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-6.14-8f7bff?style=flat-square)](https://github.com/bhxcvb/yuhuan/releases)
+[![Version](https://img.shields.io/badge/version-6.16-8f7bff?style=flat-square)](https://github.com/bhxcvb/yuhuan/releases)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS%20%7C%20Windows-3ecf8e?style=flat-square)](#5-usage)
 [![CI](https://img.shields.io/github/actions/workflow/status/bhxcvb/yuhuan/check.yml?style=flat-square&label=CI)](https://github.com/bhxcvb/yuhuan/actions)
 
@@ -29,6 +29,7 @@
 | [① 这是什么](#1-overview) | [② 功能](#2-features) | [③ 界面](#3-screenshots) |
 | [④ 语法模块](#4-grammar) | [⑤ 怎么用](#5-usage) | [⑥ 本地开发](#6-development) |
 | [⑦ 目录结构](#7-structure) | [⑧ 数据格式](#8-data-format) | [⑨ 测试](#9-tests) |
+| [架构说明](docs/ARCHITECTURE.md) | [平台测试清单](docs/PLATFORM_TEST.md) | [安全说明](SECURITY.md) |
 | [⑩ 常见问题](#10-faq) | [⑪ 支持作者](#11-support) | [⑫ 许可](#12-license) |
 | | | |
 
@@ -51,7 +52,7 @@
 
 | | 功能 | 说明 |
 |---|---|---|
-| 📚 | **题库 1670 题** | 14 套真题 630 题 + 分知识点题 985 题 + 综合练习 |
+| 📚 | **题库 1460 题** | 14 套真题 630 题 + 分知识点题 985 题 + 综合练习 |
 | 🎯 | **分知识点练** | 51 个语法点各自成池，答对过的不再重复 |
 | 🔁 | **间隔复习** | 答对按 1/1/2/4/7/15/30 天安排；到期的题自动进今日计划 |
 | 📅 | **今日计划** | 先复习到期题，再出新题；按每天题量与考试日期安排 |
