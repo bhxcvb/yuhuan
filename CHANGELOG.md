@@ -1,5 +1,16 @@
 # 更新日志
 
+## v6.17
+
+按评审建议完善仓库与分发：
+
+- **题库可替换**：我的 → 导入/导出题库 JSON；Release 附带 `yuhuan-data-6.17.json`，换题库不用重装
+- **README 首屏**：场景化一句话开头 + 15 秒演示动图
+- **安全**：README 新增安全章节与 APK 签名 SHA-256 指纹，漏洞报告走 GitHub 私密报告
+- **仓库规范**：新增 `CODE_OF_CONDUCT.md`；CONTRIBUTING 已有 Issue/PR 流程
+- **iOS 预期前置提醒**：安装教程开头直接说明 iPhone 用 PWA
+- 版本号与 Release Tag 一一对应（v6.17）
+
 ## v6.16
 
 继续按评审建议完善：

@@ -4,12 +4,14 @@
 
 # 语欢 · 高考英语语法刷题
 
-**不背单词，只练语法。** 把 14 套高考真题拆成 1460 道题，按 51 个语法点组织；每道题都有「考点 + 依据 + 排除」的解析，阅读与完形配全文译文。
+**单词背了不少，语法题还是一错一大片？** 语欢就是为这种情况做的：14 套高考真题拆成 1460 道题，按 51 个语法点组织，每道题都有「考点 + 依据 + 排除」的解析，阅读配全文译文。不背单词，只练语法。
 
 [![License](https://img.shields.io/badge/license-MIT-5b9dff?style=flat-square)](LICENSE)
 [![Version](https://img.shields.io/badge/version-6.16-8f7bff?style=flat-square)](https://github.com/bhxcvb/yuhuan/releases)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS%20%7C%20Windows-3ecf8e?style=flat-square)](#5-usage)
 [![CI](https://img.shields.io/github/actions/workflow/status/bhxcvb/yuhuan/check.yml?style=flat-square&label=CI)](https://github.com/bhxcvb/yuhuan/actions)
+
+![语欢 15 秒演示](screenshots/demo.gif)
 
 ### [▶️ 在线体验（不用下载）](https://bhxcvb.github.io/yuhuan/web/)
 
@@ -222,3 +224,21 @@ CI 每次 push 跑这两个 job：`基础回归`（题库结构、出题规则�
 ---
 
 <div align="center"><sub>语欢 · 与语言相欢 · Made with ❤️ for Gaokao</sub></div>
+
+## 13. Security
+**安全**
+
+- 权限：Android 只申请「网络」（检查更新）与「TTS」（朗读），不读通讯录、相册、位置
+- 数据：全部存在本机（localStorage + IndexedDB 备份），无账号、无埋点、无服务器
+- 网络：唯一请求是查询 GitHub 最新版本号，可在设置关闭
+- **发现安全问题？** 请不要公开 Issue：用 GitHub 的 [私密漏洞报告](https://github.com/bhxcvb/yuhuan/security/advisories/new)，或发 Issue 只说「有安全问题，求联系方式」
+
+### APK 签名指纹
+
+校验下载的 APK 是否被篡改（`apksigner verify --print-certs yuhuan.apk`）：
+
+```
+SHA-256: 44:40:36:B3:58:8B:D0:17:81:47:B9:65:13:E0:E9:1A:9C:A6:B9:F4:08:7A:F7:46:40:C2:B5:79:11:DF:64:14
+```
+
+同一指纹的包才能覆盖安装并保留进度。
