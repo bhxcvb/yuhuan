@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="语欢">
+<meta name="format-detection" content="telephone=no,email=no,address=no">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>语欢 · 高考英语语法刷题</title>
 <style>
@@ -27,14 +28,14 @@ body.light{
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%}
-body{background:var(--page);color:var(--fg);touch-action:pan-y;font:16px/1.55 -apple-system,"Noto Sans SC","PingFang SC",system-ui,sans-serif}
-#app{display:flex;flex-direction:column;height:100dvh;max-width:620px;margin:0 auto;touch-action:pan-y}
+body{background:var(--page);color:var(--fg);touch-action:pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%;font:16px/1.55 -apple-system,"Noto Sans SC","PingFang SC",system-ui,sans-serif}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;height:calc(100dvh / var(--fs,1));zoom:var(--fs,1);max-width:620px;margin:0 auto;touch-action:pan-y}
 header{padding:calc(12px + env(safe-area-inset-top)) 18px 6px;display:flex;align-items:center;gap:10px;flex-shrink:0}
 header .back{background:none;border:0;color:var(--acc);font-size:15px;padding:2px 0;font-family:inherit;display:none}
 header .ttl{font-size:17px;font-weight:650;flex:1}
 header .right{font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums}
 header .theme{background:var(--card2);border:0;border-radius:50%;width:32px;height:32px;font-size:15px;color:var(--fg)}
-main{flex:1;overflow-y:auto;padding:10px 18px 20px}
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 18px 20px}
 nav{display:flex;border-top:1px solid var(--line);background:var(--card);padding-bottom:env(safe-area-inset-bottom)}
 nav button{flex:1;background:none;border:0;color:var(--mute);padding:9px 0 10px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:inherit;transition:color .2s}
 nav button .ic{font-size:19px}
@@ -124,7 +125,7 @@ body.light .plan .cell{background:#ffffff80}
 .ach .a.on{opacity:1;border:1px solid #5b9dff55;border-color:color-mix(in srgb,var(--acc) 40%,transparent)}
 .ach .a .i{font-size:20px}
 .ach .a .t{font-size:10px;color:var(--mute);margin-top:3px;line-height:1.2}
-.toast{position:fixed;left:50%;bottom:86px;transform:translate(-50%,16px);background:#2b3342;color:#fff;padding:10px 18px;border-radius:22px;font-size:13.5px;opacity:0;pointer-events:none;transition:.25s;z-index:300;max-width:86vw;text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translate(-50%,16px);background:#2b3342;color:#fff;padding:10px 18px;border-radius:22px;font-size:13.5px;opacity:0;pointer-events:none;transition:.25s;z-index:300;max-width:86vw;text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .sheet{position:fixed;inset:0;background:#000a;display:none;align-items:flex-end;justify-content:center;z-index:200;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
 .sheet.on{display:flex}
@@ -211,6 +212,7 @@ var REASONS = [["concept","概念不清"],["careless","粗心"],["reading","没�
 var INT_MULT = { loose:[3,3,5,8,14,30,60,120,240], normal:[1,1,2,4,7,15,30,60,120], tight:[1,1,1,2,3,7,15,30,60] };
 function intDays(box){ var m=INT_MULT[S.settings.reviewIntensity]||INT_MULT.normal; return m[Math.min(box,m.length-1)]; }
 /* 难度/表现因子：正确率低、反复遗忘、概念性错误 → 缩短间隔 */
+function daysBetween(a,b){ try{ return Math.round((new Date(a+"T00:00:00")-new Date(b+"T00:00:00"))/86400000); }catch(e){ return 0; } }
 function easeFactor(i, reason){
   var q=S.q[i]||{n:0,right:0};
   var acc=q.n?q.right/q.n:0.75;
@@ -219,11 +221,19 @@ function easeFactor(i, reason){
   var rv=S.rev[i]||{};
   if((rv.lapses||0)>=2) f*=0.8;
   if(reason==="concept") f*=0.85;
+  // 长期未复习（逾期超过预期间隔的 1.5 倍）说明可能已遗忘，下次缩短
+  if(rv.due){
+    var od=daysBetween(dateKey(), rv.due);
+    if(od>0){
+      var expected=intDays(rv.box||0);
+      if(od > expected*1.5) f*=0.75;
+    }
+  }
   return Math.max(0.5, Math.min(1.8, f));
 }
-var VERSION = "6.23";
+var VERSION = "6.24";
 var KEY = "yuhuan_v6";
-var SCHEMA = 3;
+var SCHEMA = 4;
 var OLD_KEYS = ["yuhuan_v5","grammar_v5"];
 
 /* ---------- 学习闭环 ---------- */
@@ -265,15 +275,41 @@ function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random
 function dateKey(d){ d=d||new Date(); var p=function(n){return String(n).padStart(2,"0");}; return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
 function addDays(n){ var d=new Date(); d.setDate(d.getDate()+n); return dateKey(d); }
 
-function initStore(){ return {q:{},log:{},wrong:[],rev:{},reason:{},words:[],ach:[],seenGuide:false,diag:false,settings:{theme:"dark",daily:10,examDate:"",checkUpdate:true,reviewIntensity:"normal",weekly:70}}; }
+function initStore(){ return {q:{},log:{},wrong:[],rev:{},reason:{},trend:[],words:[],ach:[],seenGuide:false,profiles:{},activeProfile:"builtin",settings:{theme:"dark",daily:10,examDate:"",checkUpdate:true,reviewIntensity:"normal",weekly:70}}; }
 
-/* 统一数据结构规范化：加载、导入、备份恢复、撤销都走这里，保证旧版本数据也能安全使用 */
-function normalizeStore(o){
+/* ---------- 多题库：每个题库独立保存学习进度、错题与复习记录 ---------- */
+var PROFILE_FIELDS=["q","log","wrong","rev","reason","trend"];
+/* 题库指纹：内容哈希 + 题量，跨设备稳定，不需要服务端 */
+function datasetHash(qs){
+  var str;
+  try{ str=JSON.stringify(qs); }catch(e){ str=String(qs&&qs.length); }
+  var h=2166136261;
+  for(var i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); }
+  return "d"+(h>>>0).toString(16)+"_"+(qs&&qs.length);
+}
+function activeDatasetId(){
+  var ds=S&&S.dataset;
+  if(ds && ds.QS && ds.QS.length){ if(!ds.id) ds.id=datasetHash(ds.QS); return ds.id; }
+  return "builtin";
+}
+function activeDatasetIdOfStore(o){
+  var ds=o&&o.dataset;
+  if(ds && ds.QS && ds.QS.length){ if(!ds.id) ds.id=datasetHash(ds.QS); return ds.id; }
+  return "builtin";
+}
+function freshProfile(){ var d=initStore(),p={}; for(var i=0;i<PROFILE_FIELDS.length;i++) p[PROFILE_FIELDS[i]]=d[PROFILE_FIELDS[i]]; return p; }
+function profileSnapshotOf(src){ var p={}; for(var i=0;i<PROFILE_FIELDS.length;i++){ var f=PROFILE_FIELDS[i]; p[f]=src[f]; } return p; }
+function applyProfile(p){ var d=initStore(); for(var i=0;i<PROFILE_FIELDS.length;i++){ var f=PROFILE_FIELDS[i]; S[f]=(p && p[f]!==undefined)?p[f]:d[f]; } }
+/* 保证：当前题库进度放在顶层，profiles 里只放「其他题库」的进度，避免重复存储 */
+function syncActive(){
+  if(!S.profiles || typeof S.profiles!=="object" || Array.isArray(S.profiles)) S.profiles={};
+  S.activeProfile=activeDatasetId();
+  delete S.profiles[S.activeProfile];
+}
+
+function normalizeProfile(o){
   var d=initStore();
   if(!o || typeof o!=="object" || Array.isArray(o)) o={};
-  for(var k in d){ if(!(k in o) || o[k]===null || o[k]===undefined) o[k]=JSON.parse(JSON.stringify(d[k])); }
-  if(typeof o.settings!=="object" || !o.settings || Array.isArray(o.settings)) o.settings=JSON.parse(JSON.stringify(d.settings));
-  for(var sk in d.settings){ if(typeof o.settings[sk]!==typeof d.settings[sk]) o.settings[sk]=d.settings[sk]; }
   if(typeof o.q!=="object" || Array.isArray(o.q)) o.q={};
   var q2={}; for(var qi in o.q){ var qv=o.q[qi]; if(qv && typeof qv==="object"){ var qn=Math.max(0,parseInt(qv.n,10)||0); q2[qi]={n:qn,right:Math.min(qn,Math.max(0,parseInt(qv.right,10)||0))}; } } o.q=q2;
   if(typeof o.log!=="object" || Array.isArray(o.log)) o.log={};
@@ -283,22 +319,36 @@ function normalizeStore(o){
   if(typeof o.reason!=="object" || Array.isArray(o.reason)) o.reason={};
   if(!Array.isArray(o.wrong)) o.wrong=[];
   o.wrong=o.wrong.filter(function(x){ return typeof x==="number" && x>=0; });
+  if(!Array.isArray(o.trend)) o.trend=[];
+  o.trend=o.trend.filter(function(t){ return t && typeof t.d==="string" && typeof t.v==="number"; }).slice(-90);
+  return o;
+}
+
+/* 统一数据结构规范化：加载、导入、备份恢复、撤销都走这里，兼容旧版本 */
+function normalizeStore(o){
+  var d=initStore();
+  if(!o || typeof o!=="object" || Array.isArray(o)) o={};
+  for(var k in d){ if(!(k in o) || o[k]===null || o[k]===undefined) o[k]=JSON.parse(JSON.stringify(d[k])); }
+  if(typeof o.settings!=="object" || !o.settings || Array.isArray(o.settings)) o.settings=JSON.parse(JSON.stringify(d.settings));
+  for(var sk in d.settings){ if(typeof o.settings[sk]!==typeof d.settings[sk]) o.settings[sk]=d.settings[sk]; }
+  var np=normalizeProfile(o);
+  for(var i=0;i<PROFILE_FIELDS.length;i++){ o[PROFILE_FIELDS[i]]=np[PROFILE_FIELDS[i]]; }
   if(!Array.isArray(o.words)) o.words=[];
   o.words=o.words.filter(function(w){ return w && typeof w.w==="string" && w.w; });
   if(!Array.isArray(o.ach)) o.ach=[];
   o.ach=o.ach.filter(function(x){ return typeof x==="string"; });
   if(!Array.isArray(o.errors)) o.errors=[];
-  if(!Array.isArray(o.trend)) o.trend=[];
   if(o.dataset && (!o.dataset.QS || !Array.isArray(o.dataset.QS) || !o.dataset.QS.length)) delete o.dataset;
+  if(o.dataset && o.dataset.QS && !o.dataset.id) o.dataset.id=datasetHash(o.dataset.QS);
+  if(!o.profiles || typeof o.profiles!=="object" || Array.isArray(o.profiles)) o.profiles={};
+  var prof={}; for(var pid in o.profiles){ prof[pid]=normalizeProfile(o.profiles[pid]); } o.profiles=prof;
+  if(typeof o.activeProfile!=="string" || !o.activeProfile) o.activeProfile=activeDatasetIdOfStore(o);
+  delete o.profiles[o.activeProfile];
   o.schema=SCHEMA;
   return o;
 }
-function migrate(S){
-  var from=S.schema||1;
-  if(from<2){ /* v1 → v2：补齐复习强度、等级、字号、趋势 */ }
-  if(from<3){ /* v2 → v3：复习箱增加错误计数 */ }
-  return normalizeStore(S);
-}
+function migrate(S){ return normalizeStore(S); }
+
 var CORRUPT_RAW=null;
 function loadStore(){
   var raw=null, migrated=false, corrupt=false;
@@ -312,23 +362,81 @@ function loadStore(){
   }
   if(!S) S=initStore();
   S=normalizeStore(S);
+  // 旧版本数据顶层就是「当前题库」的进度；若 profiles 里存了当前题库的进度则载入
+  var id=activeDatasetId();
+  if(S.profiles[id]){ applyProfile(S.profiles[id]); delete S.profiles[id]; }
+  S.activeProfile=id;
   if(migrated) save();
 }
 function save(){
   var ok=true;
-  try{ snapshot(); localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ ok=false; toast("保存失败，存储空间可能已满"); }
+  try{ snapshot(); syncActive(); localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ ok=false; toast("保存失败，存储空间可能已满"); }
   try{ idbSnapshot(); }catch(e){}
   return ok;
 }
+/* 环境切换（导入题库/恢复题库/恢复整包备份）后，把顶层进度对齐到当前题库 */
+function settleActive(){
+  if(!S.profiles || typeof S.profiles!=="object" || Array.isArray(S.profiles)) S.profiles={};
+  var id=activeDatasetId(), cur=S.activeProfile;
+  if(cur && cur!==id){ S.profiles[cur]=profileSnapshotOf(S); }
+  var p=S.profiles[id];
+  if(p){ delete S.profiles[id]; applyProfile(p); }
+  else if(cur!==id){ applyProfile(freshProfile()); }
+  S.activeProfile=id;
+  syncActive();
+}
+/* 切换题库：保存当前进度到 profiles，再载入目标题库自己的进度（没有则从零开始） */
+function switchDataset(ds){
+  var backup=null;
+  try{ backup=JSON.stringify(S); }catch(e){}
+  if(!S.profiles || typeof S.profiles!=="object" || Array.isArray(S.profiles)) S.profiles={};
+  var cur=S.activeProfile||activeDatasetId();
+  S.profiles[cur]=profileSnapshotOf(S);
+  if(ds){ S.dataset=ds; if(!S.dataset.id) S.dataset.id=datasetHash(S.dataset.QS); }
+  else delete S.dataset;
+  var id=activeDatasetId();
+  if(S.profiles[id]){ applyProfile(S.profiles[id]); delete S.profiles[id]; }
+  else applyProfile(freshProfile());
+  S.activeProfile=id;
+  var ok=save();
+  if(!ok && backup){ try{ S=JSON.parse(backup); }catch(e){} }
+  return ok;
+}
+/* 导入进度/恢复备份：识别旧格式并落到正确的题库 profile，避免把 A 题库进度套到 B 题库 */
+function adoptImportedStore(o, keepSettings){
+  var src=(o && typeof o==="object")?o:{};
+  var legacy=!src.profiles && !src.activeProfile;
+  var localDs=S.dataset, curSet=S.settings||{};
+  var imp=normalizeStore(src);
+  if(!imp.dataset && localDs) imp.dataset=localDs;
+  if(legacy){
+    // v6.23 及更早的备份没有题库信息：按旧行为归属到当前题库
+    imp.activeProfile=activeDatasetIdOfStore(imp);
+  }
+  if(keepSettings){
+    imp.settings=imp.settings||{};
+    for(var k in curSet){ if(curSet[k]!==undefined) imp.settings[k]=curSet[k]; }
+  }
+  S=imp;
+  if(!legacy) settleActive();
+  return S;
+}
+
 var ACCENTS=[["blue","#5b9dff"],["violet","#9b7bff"],["green","#3ecf8e"],["orange","#ffb03a"],["rose","#ff6b9d"],["cyan","#3ac9d6"]];
 function applyFont(){
   var m={normal:1,large:1.1,xlarge:1.2}[S.settings.fontScale||"normal"]||1;
   var app=document.getElementById("app");
-  if(app){
-    app.style.zoom=m;
-    // zoom 会放大 100dvh，需按比例回缩，否则底部导航被挤出屏幕
-    app.style.height=(100/m)+"dvh";
-  }
+  if(!app) return;
+  try{
+    if(app.style && app.style.setProperty) app.style.setProperty("--fs", m);
+    else if(app.style) app.style.zoom=m;
+  }catch(e){ if(app.style) app.style.zoom=m; }
+  // 不支持 dvh 的旧 iOS（<15.4）：用 vh 回退，避免放大后底部导航被挤出屏幕
+  try{
+    var dvhOK = window.CSS && CSS.supports && CSS.supports("height","100dvh");
+    if(!dvhOK) app.style.height=(100/m)+"vh";
+    else app.style.height="";
+  }catch(e){ app.style.height=(100/m)+"vh"; }
 }
 function applyTheme(){
   document.body.className = S.settings.theme==="light"?"light":"dark";
@@ -413,9 +521,17 @@ function compareVersion(tag,url){
 }
 
 /* ---------- 单词发音 ---------- */
+var SPEECH_WARMED=false;
+function warmSpeech(){
+  try{
+    if(SPEECH_WARMED) return;
+    if(window.speechSynthesis && window.speechSynthesis.getVoices){ window.speechSynthesis.getVoices(); SPEECH_WARMED=true; }
+  }catch(e){}
+}
 function pronounce(text){
   text=String(text||"").trim();
   if(!text) return;
+  warmSpeech();
   try{
     if(window.AndroidNative && typeof AndroidNative.available==="function" && AndroidNative.available()){
       AndroidNative.speak(text); return;
@@ -426,6 +542,8 @@ function pronounce(text){
       window.speechSynthesis.cancel();
       var u=new SpeechSynthesisUtterance(text);
       u.lang="en-US"; u.rate=0.9;
+      // iOS 上部分版本需要 resume 才会真正出声
+      try{ window.speechSynthesis.resume(); }catch(e){}
       window.speechSynthesis.speak(u);
       return;
     }
@@ -457,15 +575,25 @@ function weakList(){
   var arr=[];
   for(var i=0;i<POINTS.length;i++){
     var p=POINTS[i][0], s=pointStats(p);
-    if(s.total>0) arr.push({p:p, mod:POINTS[i][7], acc:s.acc===null?1:s.acc, n:s.n, attempted:s.attempted, done:s.done, total:s.total, mastery:pointMastery(p)});
+    if(s.total>0){
+      var acc=s.acc===null?1:s.acc;
+      // 贝叶斯平滑：样本少时向 50% 收缩，避免「答 1 题错 1 题」被误判为最薄弱
+      var shrunk=(s.right+1.5)/(s.n+3);
+      arr.push({p:p, mod:POINTS[i][7], acc:acc, shrunk:shrunk, n:s.n, attempted:s.attempted, done:s.done, total:s.total, mastery:pointMastery(p), low:s.n<3});
+    }
   }
-  // 有作答记录的知识点按真实正确率排序；没有记录的排在最后
+  // 有作答记录的知识点按平滑后正确率排序；没有记录的排在最后
   arr.sort(function(a,b){
     if(a.n===0 && b.n>0) return 1;
     if(b.n===0 && a.n>0) return -1;
-    return a.acc-b.acc || b.n-a.n;
+    return a.shrunk-b.shrunk || a.mastery-b.mastery || b.n-a.n;
   });
   return arr;
+}
+/* 推荐练习用的薄弱程度：低正确率 + 低掌握度 + 有足够样本 */
+function weakScore(x){
+  var acc=x.shrunk!==undefined?x.shrunk:(x.acc||0);
+  return (1-acc)*60 + (100-(x.mastery||0))*0.4;
 }
 
 /* ---------- 中文反查 ---------- */
@@ -653,17 +781,12 @@ function fmtBackupTime(ts){
 function restoreFrom(dataStr, when){
   var o; try{ o=JSON.parse(dataStr); }catch(e){ toast("备份解析失败"); return; }
   try{ localStorage.setItem("yuhuan_pre-restore", JSON.stringify(S)); }catch(e){}
-  var st=S.settings||{}, keep={theme:st.theme,daily:st.daily,accent:st.accent,fontScale:st.fontScale,reviewIntensity:st.reviewIntensity,examDate:st.examDate,checkUpdate:st.checkUpdate,level:st.level}, keepDs=S.dataset;
+  var curSet=S.settings||{};
   S=normalizeStore(o);
-  if(keepDs && !S.dataset) S.dataset=keepDs;
-  if(keep.theme) S.settings.theme=keep.theme;
-  if(keep.daily) S.settings.daily=keep.daily;
-  if(keep.accent) S.settings.accent=keep.accent;
-  if(keep.fontScale) S.settings.fontScale=keep.fontScale;
-  if(keep.reviewIntensity) S.settings.reviewIntensity=keep.reviewIntensity;
-  if(keep.examDate!=null) S.settings.examDate=keep.examDate||"";
-  if(typeof keep.checkUpdate==="boolean") S.settings.checkUpdate=keep.checkUpdate;
-  if(keep.level) S.settings.level=keep.level;
+  // 外观与偏好保留当前设备的设置；进度按备份里的题库 profile 对齐
+  S.settings=S.settings||{};
+  for(var k in curSet){ if(curSet[k]!==undefined) S.settings[k]=curSet[k]; }
+  settleActive();
   save(); navRoot("home"); toast("已恢复"+(when?"（"+when+"）":""));
 }
 function idbRestore(){
@@ -691,9 +814,10 @@ function undoRestore(){
     var raw=localStorage.getItem("yuhuan_pre-restore");
     if(!raw){ toast("没有可撤销的恢复"); return; }
     askConfirm("撤销恢复","回到上一次「从自动备份恢复」之前的学习数据？","撤销",function(){
-      var th=S.settings.theme, ds=S.dataset;
-      S=normalizeStore(JSON.parse(raw)); S.settings.theme=th;
-      if(ds && !S.dataset) S.dataset=ds;
+      var st=S.settings;
+      S=normalizeStore(JSON.parse(raw));
+      if(st) S.settings=st;
+      settleActive();
       save(); navRoot("home"); toast("已撤销恢复");
     });
   }catch(e){ toast("撤销失败"); }
@@ -807,7 +931,8 @@ function schedule(i, ok, reason){
 
 /* ---------- 计划 ---------- */
 function weakPoints(n){
-  var arr=weakList().filter(function(x){ return x.n>0 && x.acc<0.9 && x.mastery<90; });
+  // 至少作答 2 次才参与薄弱点推荐，避免单题样本误判
+  var arr=weakList().filter(function(x){ return x.n>=2 && (x.acc<0.9 || x.mastery<90); });
   if(!arr.length) arr=weakList().filter(function(x){ return x.attempted<x.total; });
   return arr.slice(0,n||3);
 }
@@ -820,7 +945,7 @@ function recommendList(n){
   shuffle(due);
   var dueCap=Math.max(1,Math.round(n*0.5));
   for(var i=0;i<due.length && out.length<dueCap;i++) push(due[i]);
-  var ws=weakList().filter(function(x){ return x.n>0 && x.acc<0.85 && x.mastery<85; });
+  var ws=weakList().filter(function(x){ return x.n>=2 && (x.acc<0.85 || x.mastery<85); }).sort(function(a,b){ return weakScore(b)-weakScore(a); });
   for(var w=0;w<ws.length && out.length<n;w++){
     var ids=pointIds(ws[w].p), pool=ids.filter(function(x){ return !hasPassage(x) && !isDone(x); });
     if(!pool.length) pool=ids.filter(function(x){ return !hasPassage(x); });
@@ -922,6 +1047,13 @@ function fmtTime(s){ s=Math.max(0,s); return Math.floor(s/60)+":"+String(s%60).p
 function current(){ return ses&&ses.i<ses.list.length?ses.list[ses.i]:null; }
 function hasPassage(i){ return !!(QS[i]&&QS[i][6]); }
 function validQ(i){ return typeof i==="number" && i>=0 && i<QS.length; }
+/* 2022 年后真题官方未公开答案：在解析下方标注来源，避免误导 */
+function answerSourceNote(i){
+  var src=(QS[i]&&QS[i][5])||"";
+  var m=src.match(/^(20\d{2})/);
+  if(m && parseInt(m[1],10)>=2022) return '<div class="hint" style="margin-top:8px">2022 年后官方未公布答案，本题由项目维护者解答；如发现错误请点「这题有问题」。</div>';
+  return "";
+}
 var DUPQ=null;
 function dupSet(){
   if(DUPQ) return DUPQ;
@@ -1064,6 +1196,18 @@ function record(i, ok){
 }
 function checkAch(){ var unlocked=[]; for(var i=0;i<ACH.length;i++){ var a=ACH[i]; if(S.ach.indexOf(a.id)<0 && a.f()){ S.ach.push(a.id); unlocked.push(a); } } if(unlocked.length){ save(); toast("成就解锁：" + unlocked[0].t); } }
 
+/* 统一统计口径：报告与分析页共用，避免两边数字不一致（offset=0 本期，offset=span 上一期） */
+function rangeStats(span, offset){
+  span=Math.max(1,parseInt(span,10)||7); offset=Math.max(0,parseInt(offset,10)||0);
+  var days=[], perDay=[], tot=0, rgt=0, mx=1;
+  for(var k=span-1;k>=0;k--){
+    var dt=new Date(); dt.setDate(dt.getDate()-k-offset);
+    var key=dateKey(dt), l=S.log[key]||{};
+    var n=Math.max(0,l.n||0), r=Math.min(n,Math.max(0,l.r||0));
+    days.push(key); perDay.push({d:key,n:n,r:r}); tot+=n; rgt+=r; if(n>mx) mx=n;
+  }
+  return {span:span,offset:offset,days:days,perDay:perDay,tot:tot,rgt:rgt,acc:tot?Math.round(rgt/tot*100):0,mx:mx};
+}
 /* ---------- 渲染 ---------- */
 function setNav(){
   $("nav").innerHTML=[["home","✏️","练习"],["outline","📚","语法"],["mine","👤","我的"]].map(function(t){
@@ -1088,6 +1232,109 @@ function progressDump(){
   catch(e){ return "{}"; }
 }
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+
+function pageReport(){
+
+    var span=(ui.reportSpan||7);
+    var title=span===30?"最近 30 天报告":"每周学习报告";
+    var cur=rangeStats(span,0), prev=rangeStats(span,span);
+    var target=Math.max(10,Math.round((S.settings.weekly||70)*(span/7)));
+    var tPct=target?Math.min(100,Math.round(cur.tot/target*100)):0;
+    var delta=cur.tot-prev.tot, accDelta=cur.acc-prev.acc;
+    var wrongAll=S.wrong.filter(validQ), wrongN=wrongAll.length;
+    var catCnt={}; wrongAll.forEach(function(i){ var c=wrongCategory(i); catCnt[c]=(catCnt[c]||0)+1; });
+    var catName={concept:"概念不清",careless:"粗心",reading:"没看懂句子",unknown:"未归因"};
+    var catKeys=["concept","careless","reading","unknown"].filter(function(c){ return catCnt[c]; });
+    var weaks=weakList().filter(function(x){ return x.n>=2; }).slice(0,3);
+    var lowSample=weakList().filter(function(x){ return x.n>0 && x.n<3; }).length;
+    var dueNow=dueCount();
+    var html='<div class="chips" style="margin-bottom:10px"><button class="chip'+(span===7?" on":"")+'" data-act="rspan" data-v="7">7 天</button><button class="chip'+(span===30?" on":"")+'" data-act="rspan" data-v="30">30 天</button></div>'+
+      '<div class="hero"><div class="kicker">最近 '+span+' 天</div><div class="big">'+cur.tot+' 题 · 正确率 '+cur.acc+'%</div>'+
+        '<div class="sub">连续学习 '+streak()+' 天 · 较上一周期 '+(delta>=0?"+":"")+delta+' 题'+(prev.tot?("（正确率 "+(accDelta>=0?"+":"")+accDelta+"%）"):"")+'</div></div>'+
+      '<div class="sec"><h3>'+(span===30?"本期目标":"本周目标")+'</h3><div class="row"><span>完成 '+cur.tot+' / '+target+' 题</span><span class="v">'+tPct+'%</span></div>'+
+        '<div class="bar"><i style="width:'+tPct+'%"></i></div>'+
+        '<div class="hint" style="margin-top:8px">目标可在「我的 → 每周目标」调整；当前每周 '+(S.settings.weekly||70)+' 题。</div></div>'+
+      '<div class="sec"><h3>每天题量</h3>'+cur.perDay.map(function(e){
+        var h=Math.max(6,Math.round(e.n/cur.mx*100));
+        return '<div class="row"><span>'+e.d.slice(5)+'</span><span class="v"><i style="display:inline-block;height:8px;width:'+h+'px;background:var(--acc);border-radius:4px;margin-right:8px;vertical-align:middle"></i>'+e.n+' 题 · '+(e.n?Math.round(e.r/e.n*100):0)+'%</span></div>';
+      }).join("")+'</div>'+
+      '<div class="sec"><h3>错题分类</h3>'+(catKeys.length? catKeys.map(function(c){ var p2=wrongN?Math.round(catCnt[c]/wrongN*100):0; return '<div class="wbar"><span class="nm">'+catName[c]+'</span><span class="track"><i style="width:'+p2+'%;background:var(--acc2)"></i></span><span class="pc">'+catCnt[c]+' 题</span></div>'; }).join("") : '<div class="hint">错题本还是空的</div>')+'</div>'+
+      '<div class="sec"><h3>薄弱点 Top3</h3>'+(weaks.length? weaks.map(function(w){ return '<div class="point" style="padding:8px 0;border:0"><div class="nm">'+esc(w.p)+'<div class="hint">真实正确率 '+Math.round(w.acc*100)+'% · 作答 '+w.n+' 次 · 掌握度 '+w.mastery+'%</div></div><button class="go" data-act="prac" data-p="'+esc(w.p)+'">练</button></div>'; }).join("") : '<div class="hint">还没有足够作答数据</div>')+
+        (lowSample?'<div class="hint" style="margin-top:6px">另有 '+lowSample+' 个知识点样本不足（少于 3 次作答），暂不参与薄弱判断。</div>':"")+'</div>'+
+      '<div class="sec"><h3>下周建议</h3><div class="hint" style="font-size:14px;line-height:1.8">'+
+        (dueNow? "· 先清掉 "+dueNow+" 道到期复习题，避免遗忘。<br>":"")+
+        (weaks.length? "· 重点补「"+esc(weaks[0].p)+"」等 "+weaks.length+" 个薄弱知识点。<br>":"")+
+        (catCnt.careless? "· 粗心类错题 "+catCnt.careless+" 道，做题时先圈出关键词再选。<br>":"")+
+        (catCnt.concept? "· 概念类错题 "+catCnt.concept+" 道，建议先看知识点卡片再练。<br>":"")+
+        "· 每天保持 "+(S.settings.daily||10)+" 题左右，连续学习比突击更有效。</div></div>"+
+      '<div class="sec"><h3>进度</h3><div class="row"><span>已答对</span><span class="v">'+totalDone()+' / '+QS.length+'</span></div><div class="row"><span>待复习</span><span class="v">'+dueNow+' 题</span></div><div class="row"><span>错题本</span><span class="v">'+wrongN+' 题</span></div></div>';
+    
+  return {title:(typeof title==="undefined"?"":title), right:(typeof right==="undefined"?"":right), html:html};
+}
+
+function pageStats(){
+
+    var title="学习分析";
+    var span=(ui.statSpan||7);
+    var rs=rangeStats(span);
+    var days=rs.days, tot=rs.tot, rgt=rs.rgt, acc=rs.acc;
+    var W2=760,H2=180,pad=16;
+    var xOf=function(i){ return pad + i*(W2-2*pad)/Math.max(1,days.length-1); };
+    var yOf=function(v){ return H2-pad-v*(H2-2*pad)/100; };
+    // 正确率趋势：只连有记录的天，避免无记录日把曲线拉到 0
+    var pts=[]; rs.perDay.forEach(function(e,i){ if(e.n) pts.push([i,Math.round(e.r/e.n*100)]); });
+    var poly=pts.map(function(p){ return xOf(p[0])+","+yOf(p[1]); }).join(" ");
+    var svg=pts.length>=2? '<svg viewBox="0 0 '+W2+' '+H2+'" style="width:100%;height:auto"><polyline points="'+poly+'" fill="none" stroke="var(--acc)" stroke-width="3"/>'+
+        pts.map(function(p){ return '<circle cx="'+xOf(p[0])+'" cy="'+yOf(p[1])+'" r="4" fill="var(--acc)"/>'; }).join("")+'</svg>'
+      : '<div class="hint">多练几天后会显示正确率趋势</div>';
+    // 掌握度曲线（每日快照）
+    var tr=(S.trend||[]).slice(-Math.max(span,2));
+    var tpts=tr.map(function(p,i){ return (pad+i*(W2-2*pad)/Math.max(1,tr.length-1))+","+(H2-pad-(QS.length?p.v/QS.length*100:0)*(H2-2*pad)/100); }).join(" ");
+    var svg2=tr.length>1? '<svg viewBox="0 0 '+W2+' '+H2+'" style="width:100%;height:auto"><polyline points="'+tpts+'" fill="none" stroke="var(--good)" stroke-width="3"/></svg>' : '<div class="hint">多练几天后会显示掌握度曲线</div>';
+    // 模块掌握度（真实正确率 × 覆盖度）
+    var modHTML=MODULES.map(function(m){ var p=moduleMastery(m); return '<div class="wbar"><span class="nm">'+esc(m)+'</span><span class="track"><i style="width:'+p+'%;background:linear-gradient(90deg,var(--acc),var(--acc2))"></i></span><span class="pc">'+p+'%</span></div>'; }).join("");
+    // 错因分布
+    var rs={}; for(var qi in S.reason){ var rr=S.reason[qi]; for(var kk in rr){ rs[kk]=(rs[kk]||0)+rr[kk]; } }
+    var rsTotal=0; for(var k3 in rs) rsTotal+=rs[k3];
+    var wl=weakList().filter(function(x){ return x.n>=2; }).slice(0,5);
+    var html='<div class="chips" style="margin-bottom:12px">'+
+        '<button class="chip'+(span===7?" on":"")+'" data-act="sspan" data-v="7">近 7 天</button>'+
+        '<button class="chip'+(span===30?" on":"")+'" data-act="sspan" data-v="30">近 30 天</button></div>'+
+      '<div class="tiles"><div class="tile"><b>'+acc+'%</b><span>正确率</span></div><div class="tile"><b>'+tot+'</b><span>做题</span></div><div class="tile"><b>'+streak()+'</b><span>连续天数</span></div></div>'+
+      '<div class="sec"><h3>各模块掌握度</h3>'+modHTML+'<div class="hint">正确率占 70%，已答对覆盖占 30%</div></div>'+
+      '<div class="sec"><h3>正确率趋势</h3>'+svg+'<div class="hint">只统计有作答的日期</div></div>'+
+      '<div class="sec"><h3>掌握度曲线</h3>'+svg2+'<div class="hint">已答对题数占总题库的比例</div></div>'+
+      '<div class="sec"><h3>错因分布</h3>'+(rsTotal? REASONS.map(function(r){ var n2=rs[r[0]]||0; var p2=Math.round(n2/rsTotal*100); return '<div class="wbar"><span class="nm">'+r[1]+'</span><span class="track"><i style="width:'+p2+'%;background:var(--acc2)"></i></span><span class="pc">'+p2+'%</span></div>'; }).join("") : '<div class="hint">还没有标记过错因，答题答错时可选</div>')+'</div>'+
+      '<div class="sec"><h3>最薄弱的 5 个知识点</h3>'+(wl.length? wl.map(function(w){ return '<div class="point" style="padding:8px 0;border:0"><div class="nm">'+esc(w.p)+'<div class="hint">真实正确率 '+Math.round(w.acc*100)+'% · 作答 '+w.n+' 次</div></div><div class="pg">'+w.mastery+'%</div><button class="go" data-act="prac" data-p="'+esc(w.p)+'">练</button></div>'; }).join("") : '<div class="hint">还没有作答数据</div>')+'</div>';
+    
+  return {title:(typeof title==="undefined"?"":title), right:(typeof right==="undefined"?"":right), html:html};
+}
+
+function pageData(){
+
+    var title="备份 / 恢复";
+    var dump=progressDump();
+    var preImport=lsGet("yuhuan_pre-import"), preRestore=lsGet("yuhuan_pre-restore"), preBank=lsGet("yuhuan_pre-dataimport");
+    var html='<div class="sec"><h3>学习进度备份</h3>'+
+      '<div class="hint" style="margin-bottom:10px">复制下面内容保存；换设备后粘贴回来点「导入」。只含学习进度，不含自定义题库。</div>'+
+      '<textarea id="dump">'+esc(dump)+'</textarea>'+
+      '<div class="btns" style="margin-top:12px"><button class="btn ghost" data-act="copydata">复制</button><button class="btn good" data-act="importdata">导入</button></div>'+
+      '<div class="btns" style="margin-top:10px"><button class="btn ghost" data-act="savedatafile">保存为文件</button><button class="btn ghost" data-act="loaddatafile">从文件导入</button></div>'+
+      (preImport?'<button class="btn ghost" data-act="undorestore" style="margin-top:10px">撤销上次导入</button>':'')+
+      (preRestore?'<button class="btn ghost" data-act="undorestorerestore" style="margin-top:10px">撤销上次恢复</button>':'')+
+      '<button class="btn ghost" data-act="idbrestore" style="margin-top:10px">从自动备份恢复</button>'+
+      '<div class="hint center" style="margin-top:10px">'+Math.round(dump.length/1024)+' KB · '+totalDone()+' 题已答对</div></div>'+
+      '<div class="sec"><h3>题库</h3>'+
+        '<div class="hint">当前题库：'+(S.dataset?("自定义 · "+S.dataset.QS.length+" 题"):("内置 · "+QS.length+" 题"))+
+          '（独立进度'+(S.dataset&&S.dataset.id?" · ID "+esc(String(S.dataset.id).slice(0,12)):"")+'）</div>'+
+        (Object.keys(S.profiles||{}).length?'<div class="hint">另有 '+Object.keys(S.profiles).length+' 个题库的进度已保存，切回时自动恢复。</div>':'')+
+        '<div class="btns" style="margin-top:10px"><button class="btn ghost" data-act="dataexport">导出题库</button><button class="btn ghost" data-act="dataimport">导入题库</button></div>'+
+        (preBank?'<button class="btn ghost" data-act="undodataimport" style="margin-top:10px">撤销题库导入</button>':'')+
+        (S.dataset?'<button class="btn ghost" data-act="dataclear" style="margin-top:10px">恢复内置题库</button>':'')+
+        '<div class="hint" style="margin-top:8px">每个题库的答题进度、错题和复习记录互相独立，切换不会覆盖。题库格式：{"QS":[…],"TR":{…},"NOS":{…}}；导入前自动备份、可撤销。进度备份会包含所有题库的进度。</div></div>';
+    
+  return {title:(typeof title==="undefined"?"":title), right:(typeof right==="undefined"?"":right), html:html};
+}
 
 function render(){
   applyTheme();
@@ -1260,7 +1507,7 @@ function render(){
           '<span class="chip">来源：'+esc(item[5]||"仿真")+'</span>'+
           ((item[7]&&REL[item[7]])?REL[item[7]].slice(0,2).map(function(r){return '<button class="chip" data-act="detail" data-p="'+esc(r)+'">相邻：'+esc(r)+'</button>';}).join(""):"")+
         '</div></div>'+
-        '<div class="why"><b>解析：</b>'+esc(item[4])+'</div>'+
+        '<div class="why"><b>解析：</b>'+esc(item[4])+'</div>'+answerSourceNote(qi)+
         ((item[7]&&KB[item[7]]&&KB[item[7]].trap)?'<details class="passage" style="margin-top:10px"><summary>⚠️ 这个知识点的易混点</summary><div class="ptext" style="max-height:30vh">'+esc(KB[item[7]].trap)+'</div></details>':'')+
         (tr&&tr.p?'<div class="trbox"><div class="trh">原文译文</div><div class="trq" style="white-space:pre-wrap">'+esc(tr.p)+'</div></div>':"")+
 
@@ -1407,7 +1654,7 @@ function render(){
       var stem='<div class="card" style="padding:16px"><div class="qtext" data-word="1" style="font-size:17px">'+esc(item[1]).replace(/_{3,}/g,"<u>____</u>")+'</div></div>';
       var ansBox="";
       if(ses.submitted){
-        ansBox='<div class="why"><b>解析：</b>'+esc(item[4])+'</div>';
+        ansBox='<div class="why"><b>解析：</b>'+esc(item[4])+'</div>'+answerSourceNote(qi);
         var tr=TR[qi];
         if(tr&&tr.q) ansBox+='<div class="trbox"><div class="trh">译文</div><div class="trq"><b>题目：</b>'+esc(tr.q)+'</div></div>';
       }
@@ -1479,52 +1726,12 @@ function render(){
       (item2[6]?'<details class="passage"><summary>📖 看原文</summary><div class="ptext">'+esc(item2[6])+'</div></details>':"")+
       '<div class="card"><div class="qtext" data-word="1">'+esc(item2[1]).replace(/_{3,}/g,"<u>____</u>")+'</div></div>'+
       '<div style="margin-top:14px">'+item2[2].map(function(o,k){ return '<div class="opt '+(k===item2[3]?"ok":"")+'"><span class="k">'+"ABCDEFG"[k]+'</span><span>'+esc(o)+'</span></div>'; }).join("")+'</div>'+
-      '<div class="why"><b>解析：</b>'+esc(item2[4])+'</div>'+
+      '<div class="why"><b>解析：</b>'+esc(item2[4])+'</div>'+answerSourceNote(qi2)+
       (tr2?'<div class="trbox"><div class="trh">译文</div>'+(tr2.q?'<div class="trq"><b>题目：</b>'+esc(tr2.q)+'</div>':"")+((tr2.o||[]).map(function(t,k){return '<div class="tro"><b>'+"ABCDEFG"[k]+'.</b> '+esc(t)+'</div>';}).join(""))+'</div>':"");
     return;
   }
 
-  if(phase==="report"){
-    var span=(ui.reportSpan||7);
-    $("ttl").textContent=span===30?"最近 30 天报告":"每周学习报告";
-    var days=[],tot=0,rgt=0,mx=1;
-    for(var k=span-1;k>=0;k--){ var dt=new Date(); dt.setDate(dt.getDate()-k); days.push(dateKey(dt)); }
-    days.forEach(function(k2){ var l=S.log[k2]||{n:0,r:0}; tot+=l.n||0; rgt+=l.r||0; if((l.n||0)>mx) mx=l.n; });
-    // 与上一周期对比
-    var pdays=[],ptot=0,prgt=0;
-    for(var pk=span*2-1;pk>=span;pk--){ var pdt=new Date(); pdt.setDate(pdt.getDate()-pk); pdays.push(dateKey(pdt)); }
-    pdays.forEach(function(k3){ var l=S.log[k3]||{}; ptot+=l.n||0; prgt+=l.r||0; });
-    var target=Math.max(10,Math.round((S.settings.weekly||70)*(span/7)));
-    var tPct=target?Math.min(100,Math.round(tot/target*100)):0;
-    var delta=tot-ptot;
-    var accPct=tot?Math.round(rgt/tot*100):0, prevAcc=ptot?Math.round(prgt/ptot*100):0;
-    var weaks=weakList().filter(function(x){ return x.n>0; }).slice(0,3);
-    var catCnt={}; S.wrong.forEach(function(i){ var c=wrongCategory(i); catCnt[c]=(catCnt[c]||0)+1; });
-    var catName={concept:"概念不清",careless:"粗心",reading:"没看懂句子",unknown:"未归因"};
-    var catKeys=["concept","careless","reading","unknown"].filter(function(c){ return catCnt[c]; });
-    var dueNow=dueCount(), wrongN=S.wrong.length;
-    v.innerHTML='<div class="chips" style="margin-bottom:10px"><button class="chip'+(span===7?" on":"")+'" data-act="rspan" data-v="7">7 天</button><button class="chip'+(span===30?" on":"")+'" data-act="rspan" data-v="30">30 天</button></div>'+
-      '<div class="hero"><div class="kicker">最近 '+span+' 天</div><div class="big">'+tot+' 题 · 正确率 '+accPct+'%</div>'+
-        '<div class="sub">连续学习 '+streak()+' 天 · 较上一周期 '+(delta>=0?"+":"")+delta+' 题'+(ptot?("（正确率 "+(accPct-prevAcc>=0?"+":"")+(accPct-prevAcc)+"%）"):"")+'</div></div>'+
-      '<div class="sec"><h3>本周目标</h3><div class="row"><span>完成 '+tot+' / '+target+' 题</span><span class="v">'+tPct+'%</span></div>'+
-        '<div class="bar"><i style="width:'+tPct+'%"></i></div>'+
-        '<div class="hint" style="margin-top:8px">目标可在「我的 → 每周目标」调整；当前每周 '+(S.settings.weekly||70)+' 题。</div></div>'+
-      '<div class="sec"><h3>每天题量</h3>'+days.map(function(k4){
-        var l=S.log[k4]||{n:0,r:0}, h=Math.max(6,Math.round((l.n||0)/mx*100));
-        return '<div class="row"><span>'+k4.slice(5)+'</span><span class="v"><i style="display:inline-block;height:8px;width:'+h+'px;background:var(--acc);border-radius:4px;margin-right:8px;vertical-align:middle"></i>'+(l.n||0)+' 题 · '+(l.n?Math.round((l.r||0)/l.n*100):0)+'%</span></div>';
-      }).join("")+'</div>'+
-      '<div class="sec"><h3>错题分类</h3>'+(catKeys.length? catKeys.map(function(c){ var p2=Math.round(catCnt[c]/wrongN*100); return '<div class="wbar"><span class="nm">'+catName[c]+'</span><span class="track"><i style="width:'+p2+'%;background:var(--acc2)"></i></span><span class="pc">'+catCnt[c]+' 题</span></div>'; }).join("") : '<div class="hint">错题本还是空的</div>')+'</div>'+
-      '<div class="sec"><h3>薄弱点 Top3</h3>'+(weaks.length? weaks.map(function(w){ return '<div class="point" style="padding:8px 0;border:0"><div class="nm">'+esc(w.p)+'<div class="hint">真实正确率 '+Math.round(w.acc*100)+'% · 掌握度 '+w.mastery+'%</div></div><button class="go" data-act="prac" data-p="'+esc(w.p)+'">练</button></div>'; }).join("") : '<div class="hint">还没有作答数据</div>')+'</div>'+
-      '<div class="sec"><h3>下周建议</h3><div class="hint" style="font-size:14px;line-height:1.8">'+
-        (dueNow? "· 先清掉 "+dueNow+" 道到期复习题，避免遗忘。<br>":"")+
-        (weaks.length? "· 重点补「"+esc(weaks[0].p)+"」等 "+weaks.length+" 个薄弱知识点。<br>":"")+
-        (catCnt.careless? "· 粗心类错题 "+catCnt.careless+" 道，做题时先圈出关键词再选。<br>":"")+
-        (catCnt.concept? "· 概念类错题 "+catCnt.concept+" 道，建议先看知识点卡片再练。<br>":"")+
-        "· 每天保持 "+(S.settings.daily||10)+" 题左右，连续学习比突击更有效。</div></div>"+
-      '<div class="sec"><h3>进度</h3><div class="row"><span>已答对</span><span class="v">'+totalDone()+' / '+QS.length+'</span></div><div class="row"><span>待复习</span><span class="v">'+dueNow+' 题</span></div><div class="row"><span>错题本</span><span class="v">'+wrongN+' 题</span></div></div>';
-    return;
-  }
-
+  if(phase==="report"){ var pgR=pageReport(); $("ttl").textContent=pgR.title; $("right").textContent=pgR.right; v.innerHTML=pgR.html; return; }
   if(phase==="writing"){
     $("ttl").textContent="写作范文"; $("right").textContent=WRITING.length+" 篇";
     v.innerHTML=WRITING.map(function(w,k){
@@ -1589,50 +1796,15 @@ function render(){
     return;
   }
 
-  if(phase==="stats"){
-    $("ttl").textContent="学习分析";
-    var span=(ui.statSpan||7);
-    var days=[]; for(var k=span-1;k>=0;k--){ var dt=new Date(); dt.setDate(dt.getDate()-k); days.push(dateKey(dt)); }
-    var tot=0,rgt=0; days.forEach(function(k){ var l=S.log[k]||{}; tot+=l.n||0; rgt+=l.r||0; });
-    var acc=tot? Math.round(rgt/tot*100):0;
-    var W2=760,H2=180,pad=16;
-    var xOf=function(i){ return pad + i*(W2-2*pad)/Math.max(1,days.length-1); };
-    var yOf=function(v){ return H2-pad-v*(H2-2*pad)/100; };
-    // 正确率趋势：只连有记录的天，避免无记录日把曲线拉到 0
-    var pts=[]; days.forEach(function(k,i){ var l=S.log[k]||{}; var n=l.n||0; if(n) pts.push([i,Math.round((l.r||0)/n*100)]); });
-    var poly=pts.map(function(p){ return xOf(p[0])+","+yOf(p[1]); }).join(" ");
-    var svg=pts.length>=2? '<svg viewBox="0 0 '+W2+' '+H2+'" style="width:100%;height:auto"><polyline points="'+poly+'" fill="none" stroke="var(--acc)" stroke-width="3"/>'+
-        pts.map(function(p){ return '<circle cx="'+xOf(p[0])+'" cy="'+yOf(p[1])+'" r="4" fill="var(--acc)"/>'; }).join("")+'</svg>'
-      : '<div class="hint">多练几天后会显示正确率趋势</div>';
-    // 掌握度曲线（每日快照）
-    var tr=(S.trend||[]).slice(-Math.max(span,2));
-    var tpts=tr.map(function(p,i){ return (pad+i*(W2-2*pad)/Math.max(1,tr.length-1))+","+(H2-pad-(QS.length?p.v/QS.length*100:0)*(H2-2*pad)/100); }).join(" ");
-    var svg2=tr.length>1? '<svg viewBox="0 0 '+W2+' '+H2+'" style="width:100%;height:auto"><polyline points="'+tpts+'" fill="none" stroke="var(--good)" stroke-width="3"/></svg>' : '<div class="hint">多练几天后会显示掌握度曲线</div>';
-    // 模块掌握度（真实正确率 × 覆盖度）
-    var modHTML=MODULES.map(function(m){ var p=moduleMastery(m); return '<div class="wbar"><span class="nm">'+esc(m)+'</span><span class="track"><i style="width:'+p+'%;background:linear-gradient(90deg,var(--acc),var(--acc2))"></i></span><span class="pc">'+p+'%</span></div>'; }).join("");
-    // 错因分布
-    var rs={}; for(var qi in S.reason){ var rr=S.reason[qi]; for(var kk in rr){ rs[kk]=(rs[kk]||0)+rr[kk]; } }
-    var rsTotal=0; for(var k3 in rs) rsTotal+=rs[k3];
-    var wl=weakList().filter(function(x){ return x.n>0; }).slice(0,5);
-    v.innerHTML='<div class="chips" style="margin-bottom:12px">'+
-        '<button class="chip'+(span===7?" on":"")+'" data-act="sspan" data-v="7">近 7 天</button>'+
-        '<button class="chip'+(span===30?" on":"")+'" data-act="sspan" data-v="30">近 30 天</button></div>'+
-      '<div class="tiles"><div class="tile"><b>'+acc+'%</b><span>正确率</span></div><div class="tile"><b>'+tot+'</b><span>做题</span></div><div class="tile"><b>'+streak()+'</b><span>连续天数</span></div></div>'+
-      '<div class="sec"><h3>各模块掌握度</h3>'+modHTML+'<div class="hint">正确率占 70%，已答对覆盖占 30%</div></div>'+
-      '<div class="sec"><h3>正确率趋势</h3>'+svg+'<div class="hint">只统计有作答的日期</div></div>'+
-      '<div class="sec"><h3>掌握度曲线</h3>'+svg2+'<div class="hint">已答对题数占总题库的比例</div></div>'+
-      '<div class="sec"><h3>错因分布</h3>'+(rsTotal? REASONS.map(function(r){ var n2=rs[r[0]]||0; var p2=Math.round(n2/rsTotal*100); return '<div class="wbar"><span class="nm">'+r[1]+'</span><span class="track"><i style="width:'+p2+'%;background:var(--acc2)"></i></span><span class="pc">'+p2+'%</span></div>'; }).join("") : '<div class="hint">还没有标记过错因，答题答错时可选</div>')+'</div>'+
-      '<div class="sec"><h3>最薄弱的 5 个知识点</h3>'+(wl.length? wl.map(function(w){ return '<div class="point" style="padding:8px 0;border:0"><div class="nm">'+esc(w.p)+'<div class="hint">真实正确率 '+Math.round(w.acc*100)+'% · 作答 '+w.n+' 次</div></div><div class="pg">'+w.mastery+'%</div><button class="go" data-act="prac" data-p="'+esc(w.p)+'">练</button></div>'; }).join("") : '<div class="hint">还没有作答数据</div>')+'</div>';
-    return;
-  }
-
+  if(phase==="stats"){ var pgS=pageStats(); $("ttl").textContent=pgS.title; $("right").textContent=pgS.right; v.innerHTML=pgS.html; return; }
   if(phase==="weak"){
     $("ttl").textContent="薄弱知识点";
     var all=weakList(), tried=all.filter(function(x){ return x.n>0; });
-    var wl=tried.filter(function(x){ return x.acc<0.85; });
+    var wl=tried.filter(function(x){ return x.n>=2 && x.acc<0.85; });
+    var lowSample=tried.filter(function(x){ return x.n<3; });
     var untried=all.filter(function(x){ return x.n===0 && x.attempted<x.total; });
     $("right").textContent=(wl.length||untried.length)+" 个";
-    if(!wl.length && !untried.length){ v.innerHTML='<div class="hero center"><div class="big">没有明显薄弱点 🎉</div><div class="sub">所有练过的知识点正确率都在 85% 以上</div></div>'; return; }
+    if(!wl.length && !untried.length && !lowSample.length){ v.innerHTML='<div class="hero center"><div class="big">没有明显薄弱点 🎉</div><div class="sub">所有练过的知识点正确率都在 85% 以上</div></div>'; return; }
     v.innerHTML='<div class="hint" style="margin-bottom:10px">按真实正确率从低到高排列；没有作答记录的知识点排在后面。点「练」只出该知识点的题。</div>'+
       (wl.length? wl.slice(0,30).map(function(x){
         var pct=Math.round(x.acc*100);
@@ -1644,6 +1816,10 @@ function render(){
           '<div class="pg" style="color:'+col+'">'+pct+'%</div>'+
           '<button class="go" data-act="prac" data-p="'+esc(x.p)+'">练</button></div>';
       }).join("") : "")+
+      (lowSample.length? '<h3 style="font-size:13px;color:var(--mute);margin:16px 0 8px">样本不足，暂不判定</h3>'+
+        lowSample.slice(0,10).map(function(x){
+          return '<div class="point" style="background:var(--card);border-radius:16px;margin-bottom:10px;border:0"><div class="nm"><div>'+esc(x.p)+'</div><div class="hint">'+esc(x.mod)+' · 只作答 '+x.n+' 次，建议再练几题</div></div><button class="go" data-act="prac" data-p="'+esc(x.p)+'">练</button></div>';
+        }).join("") : "")+
       (untried.length? '<h3 style="font-size:13px;color:var(--mute);margin:16px 0 8px">还没练过的知识点</h3>'+
         untried.slice(0,20).map(function(x){
           return '<div class="point" style="background:var(--card);border-radius:16px;margin-bottom:10px;border:0"><div class="nm"><div>'+esc(x.p)+'</div><div class="hint">'+esc(x.mod)+' · 0 / '+x.total+' 题</div></div><button class="go" data-act="prac" data-p="'+esc(x.p)+'">练</button></div>';
@@ -1665,28 +1841,7 @@ function render(){
     return;
   }
 
-  if(phase==="data"){
-    $("ttl").textContent="备份 / 恢复";
-    var dump=progressDump();
-    var preImport=lsGet("yuhuan_pre-import"), preRestore=lsGet("yuhuan_pre-restore"), preBank=lsGet("yuhuan_pre-dataimport");
-    v.innerHTML='<div class="sec"><h3>学习进度备份</h3>'+
-      '<div class="hint" style="margin-bottom:10px">复制下面内容保存；换设备后粘贴回来点「导入」。只含学习进度，不含自定义题库。</div>'+
-      '<textarea id="dump">'+esc(dump)+'</textarea>'+
-      '<div class="btns" style="margin-top:12px"><button class="btn ghost" data-act="copydata">复制</button><button class="btn good" data-act="importdata">导入</button></div>'+
-      '<div class="btns" style="margin-top:10px"><button class="btn ghost" data-act="savedatafile">保存为文件</button><button class="btn ghost" data-act="loaddatafile">从文件导入</button></div>'+
-      (preImport?'<button class="btn ghost" data-act="undorestore" style="margin-top:10px">撤销上次导入</button>':'')+
-      (preRestore?'<button class="btn ghost" data-act="undorestorerestore" style="margin-top:10px">撤销上次恢复</button>':'')+
-      '<button class="btn ghost" data-act="idbrestore" style="margin-top:10px">从自动备份恢复</button>'+
-      '<div class="hint center" style="margin-top:10px">'+Math.round(dump.length/1024)+' KB · '+totalDone()+' 题已答对</div></div>'+
-      '<div class="sec"><h3>题库</h3>'+
-        '<div class="hint">当前：'+(S.dataset?("已导入自定义题库 "+S.dataset.QS.length+" 题"):("内置题库 "+QS.length+" 题"))+'</div>'+
-        '<div class="btns" style="margin-top:10px"><button class="btn ghost" data-act="dataexport">导出题库</button><button class="btn ghost" data-act="dataimport">导入题库</button></div>'+
-        (preBank?'<button class="btn ghost" data-act="undodataimport" style="margin-top:10px">撤销题库导入</button>':'')+
-        (S.dataset?'<button class="btn ghost" data-act="dataclear" style="margin-top:10px">恢复内置题库</button>':'')+
-        '<div class="hint" style="margin-top:8px">题库格式：{"QS":[…],"TR":{…},"NOS":{…}}。导入前会自动备份，导入后可撤销。注意：自定义题库的题号与内置题库不同，旧进度可能对不上，建议用该题库自己的进度备份。</div></div>';
-    return;
-  }
-
+  if(phase==="data"){ var pgD=pageData(); $("ttl").textContent=pgD.title; $("right").textContent=pgD.right; v.innerHTML=pgD.html; return; }
   if(phase==="guide"){
     $("ttl").textContent="怎么用";
     var lv=ui.level||S.settings.level||"normal";
@@ -1782,9 +1937,10 @@ document.addEventListener("click", function(ev){
             var size=JSON.stringify({QS:o.QS,TR:o.TR||{},NOS:o.NOS||{}}).length;
             if(size>4200*1024) throw new Error("题库太大（"+Math.round(size/1024)+" KB），浏览器存储放不下");
             if(!autoBackup("pre-dataimport")) throw new Error("自动备份失败（存储空间不足），已取消导入");
-            S.dataset={QS:o.QS,TR:o.TR||{},NOS:o.NOS||{}};
-            if(!save()){ delete S.dataset; throw new Error("写入存储失败（空间不足），题库未导入"); }
-            toast("题库已导入，共 "+o.QS.length+" 题");
+            var ds={QS:o.QS,TR:o.TR||{},NOS:o.NOS||{}};
+            ds.id=datasetHash(ds.QS);
+            if(!switchDataset(ds)) throw new Error("写入存储失败（空间不足），题库未导入");
+            toast("题库已导入，共 "+o.QS.length+" 题（独立进度）");
             setTimeout(function(){ location.reload(); }, 700);
           }catch(e){ toast("导入失败："+e.message); }
         };
@@ -1804,9 +1960,9 @@ document.addEventListener("click", function(ev){
     return;
   }
   if(act==="dataclear"){
-    askConfirm("恢复内置题库","会删除导入的题库，学习进度保留（可撤销）。",'恢复',function(){
+    askConfirm("恢复内置题库","切回内置题库。自定义题库与内置题库的进度分别保存，不会互相覆盖（可撤销）。",'切换',function(){
       if(!autoBackup("pre-dataclear")) return;
-      delete S.dataset; if(save()) location.reload();
+      if(switchDataset(null)) location.reload();
     });
     return;
   }
@@ -1829,12 +1985,10 @@ document.addEventListener("click", function(ev){
           try{
             var o2=JSON.parse(rr.result);
             if(!o2 || typeof o2!=="object" || !o2.q) throw new Error("不是有效的进度备份");
-            askConfirm("从文件导入进度","会覆盖当前进度。导入前会自动备份当前数据，可撤销。","导入",function(){
+            askConfirm("从文件导入进度","会覆盖当前题库的进度（其他题库保留）。导入前会自动备份当前数据，可撤销。","导入",function(){
               if(!autoBackup("pre-import")) return;
-              var th2=S.settings.theme, dl2=S.settings.daily, ds2=S.dataset; S=normalizeStore(o2);
-              if(th2) S.settings.theme=th2; if(dl2) S.settings.daily=dl2;
-              if(ds2 && !S.dataset) S.dataset=ds2;
-              save(); navRoot("home"); toast("已从文件导入");
+              try{ adoptImportedStore(o2, true); save(); navRoot("home"); toast("已从文件导入"); }
+              catch(e){ toast("导入失败："+e.message); }
             });
           }catch(e){ toast("导入失败："+e.message); }
         };
@@ -1847,9 +2001,14 @@ document.addEventListener("click", function(ev){
   if(act==="undodataimport"){
     var rb=lsGet("yuhuan_pre-dataimport");
     if(!rb){ toast("没有可撤销的题库导入"); return; }
-    askConfirm("撤销题库导入","恢复到导入题库之前的状态？","撤销",function(){
-      try{ S=normalizeStore(JSON.parse(rb)); if(save()) location.reload(); else toast("存储空间不足，撤销失败"); }
-      catch(e){ toast("撤销失败"); }
+    askConfirm("撤销题库导入","恢复到导入题库之前的状态（含各题库进度）？","撤销",function(){
+      try{
+        var st=S.settings;
+        S=normalizeStore(JSON.parse(rb));
+        if(st) S.settings=st;
+        settleActive();
+        if(save()) location.reload(); else toast("存储空间不足，撤销失败");
+      }catch(e){ toast("撤销失败"); }
     });
     return;
   }
@@ -1910,18 +2069,10 @@ document.addEventListener("click", function(ev){
     try{
       var o=JSON.parse(ta.value);
       if(!o || typeof o!=="object" || !o.q || typeof o.q!=="object") throw new Error("格式不对（缺少 q 字段）");
-      askConfirm("导入数据","会覆盖当前全部进度。导入前会自动备份当前数据，可撤销。","导入",function(){
+      askConfirm("导入数据","会覆盖当前题库的进度（其他题库的进度保留）。导入前会自动备份当前数据，可撤销。","导入",function(){
         if(!autoBackup("pre-import")) return;
-        var th=S.settings.theme,dl=S.settings.daily,ac=S.settings.accent,fs=S.settings.fontScale,ri=S.settings.reviewIntensity,ex=S.settings.examDate,ds=S.dataset;
-        S=normalizeStore(o);
-        if(ds && !S.dataset) S.dataset=ds;
-        if(th) S.settings.theme=th;
-        if(dl) S.settings.daily=dl;
-        if(ac) S.settings.accent=ac;
-        if(fs) S.settings.fontScale=fs;
-        if(ri) S.settings.reviewIntensity=ri;
-        if(ex!=null) S.settings.examDate=ex||"";
-        save(); navRoot("home"); toast("导入成功（可撤销）");
+        try{ adoptImportedStore(o, true); save(); navRoot("home"); toast("导入成功（可撤销）"); }
+        catch(e){ toast("导入失败："+e.message); }
       });
     }catch(e){ toast("导入失败："+e.message); } return;
   }
@@ -1929,23 +2080,23 @@ document.addEventListener("click", function(ev){
     var raw=lsGet("yuhuan_pre-import");
     if(!raw){ toast("没有可撤销的数据"); return; }
     try{
-      askConfirm("撤销导入","恢复到最近一次导入前的数据？","撤销",function(){
-        var th=S.settings.theme,dl=S.settings.daily,ds=S.dataset;
+      askConfirm("撤销导入","恢复到最近一次导入前的数据（含各题库进度）？","撤销",function(){
+        var st=S.settings;
         S=normalizeStore(JSON.parse(raw));
-        if(th) S.settings.theme=th; if(dl) S.settings.daily=dl;
-        if(ds && !S.dataset) S.dataset=ds;
-        save(); navRoot("home"); toast("已撤销导入");
+        if(st) S.settings=st;
+        settleActive(); save(); navRoot("home"); toast("已撤销导入");
       });
     }catch(e){ toast("撤销失败"); }
     return;
   }
   if(act==="clearwrong"){ askConfirm("清空错题本","只清空错题记录，不影响已答对进度。","清空",function(){ if(!autoBackup("pre-clearwrong")) return; S.wrong=[]; save(); render(); toast("已清空"); }); return; }
-  if(act==="reset"){ askConfirm("清空进度","所有答题记录、错题、生词、成就都会删除。清空前会自动备份，可在「备份 / 恢复」页找回。","清空",function(){
+  if(act==="reset"){ askConfirm("清空进度","所有题库的答题记录、错题、生词、成就都会删除（当前题库与题库文件保留）。清空前会自动备份，可在「备份 / 恢复」页找回。","清空",function(){
     if(!autoBackup("pre-reset")) return;
-    var st=S.settings, keep={theme:st.theme,daily:st.daily,examDate:st.examDate,accent:st.accent,fontScale:st.fontScale,reviewIntensity:st.reviewIntensity,checkUpdate:st.checkUpdate,level:st.level}, keepDs=S.dataset;
+    var st=S.settings, ds=S.dataset;
     S=initStore();
-    for(var kk in keep){ if(keep[kk]!==undefined) S.settings[kk]=keep[kk]; }
-    if(keepDs) S.dataset=keepDs;
+    S.settings=st||S.settings;
+    if(ds) S.dataset=ds;
+    S.activeProfile=activeDatasetId();
     S.seenGuide=true; save(); navRoot("home"); toast("已清空（可从自动备份恢复）");
   }); return; }
   if(act==="sheetYes"){ var fn=pendingOk; closeSheet(); if(fn) fn(); return; }
@@ -2004,6 +2155,13 @@ document.addEventListener("selectionchange", function(){
   try{ var sel=window.getSelection&&window.getSelection(); if(sel && sel.removeAllRanges && document.activeElement && document.activeElement.tagName!=="TEXTAREA" && document.activeElement.tagName!=="INPUT"){ /* 保留输入框选择 */ } }catch(e){}
 });
 
+document.addEventListener("focusin", function(ev){
+  var t=ev.target;
+  if(!t || (t.tagName!=="INPUT" && t.tagName!=="TEXTAREA")) return;
+  setTimeout(function(){
+    try{ if(t.scrollIntoView) t.scrollIntoView({block:"center",behavior:"smooth"}); }catch(e){ try{ t.scrollIntoView(); }catch(e2){} }
+  },300);
+});
 window.addEventListener("popstate", function(ev){
   stopTimer();
   if(navStack.length){ phase=navStack.pop(); render(); try{ history.pushState({d:navStack.length},""); }catch(e){} }

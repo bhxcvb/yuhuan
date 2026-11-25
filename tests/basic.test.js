@@ -221,7 +221,7 @@ ok(isCJK('网络')&&!isCJK('network'),'中英文判断');
   ok(S.rev[i].box>=2,'错过又答对会加速');
   // 迁移
   var old={schema:1,q:{},log:{},wrong:[],rev:{},reason:{},words:[],ach:[]};
-  var m=migrate(old); ok(m.schema===3,'旧数据迁移到 schema 3');
+  var m=migrate(old); ok(m.schema===4,'旧数据迁移到 schema 4');
   // 导入前自动备份
   autoBackup("pre-import-test");
   ok(!!localStorage.getItem("yuhuan_pre-import-test"),'导入前备份写入本地');
@@ -325,6 +325,163 @@ ok(html().includes('测试异常'),'错误日志页显示');
   ok(fs.existsSync(path.join(__dirname,'..','web','reward.webp')),'web/reward.webp 存在');
 })();
 
+/* ========== O. 多题库进度隔离与迁移（v6.24） ========== */
+(function(){
+  // 旧数据迁移
+  var old={schema:3,q:{0:{n:2,right:1}},log:{},wrong:[0],rev:{0:{box:1,due:dateKey(),err:0}},reason:{},trend:[],words:[],ach:[]};
+  var n=normalizeStore(old);
+  ok(n.schema===4,'schema 升到 4');
+  ok(n.activeProfile==='builtin','旧数据归属内置题库');
+  ok(n.q[0]&&n.q[0].n===2,'旧进度保留');
+  ok(Object.keys(n.profiles).length===0,'旧数据不产生重复 profile');
+
+  // 题库指纹稳定且区分
+  var h1=datasetHash([['a','题干',['x','y'],0,'解析']]);
+  var h2=datasetHash([['a','题干',['x','y'],0,'解析']]);
+  var h3=datasetHash([['a','题干',['x','z'],0,'解析']]);
+  ok(h1===h2&&h1!==h3,'题库指纹稳定且可区分');
+
+  // 切换到自定义题库：进度独立
+  S=normalizeStore(initStore()); S.seenGuide=true; save();
+  S.q={0:{n:3,right:2}}; S.wrong=[0]; S.rev={0:{box:2,due:dateKey(),err:0}};
+  save();
+  var fake={QS:[['模拟','测试题干',['a','b'],0,'解析内容够长']],TR:{},NOS:{}};
+  fake.id=datasetHash(fake.QS);
+  ok(switchDataset(fake),'切换到自定义题库成功');
+  ok(S.dataset&&S.dataset.id===fake.id,'当前题库 ID 正确');
+  ok(Object.keys(S.q).length===0,'自定义题库从独立进度开始');
+  ok(S.profiles.builtin&&S.profiles.builtin.q[0]&&S.profiles.builtin.q[0].n===3,'内置题库进度存入 profiles');
+  var saved=JSON.parse(localStorage.getItem(KEY));
+  ok(!saved.profiles[saved.activeProfile],'存储中不与当前题库重复保存');
+  ok(switchDataset(null),'切回内置题库成功');
+  ok(S.q[0]&&S.q[0].n===3,'切回后恢复内置题库进度');
+  ok(!S.dataset,'当前题库回到内置');
+
+  // 新格式备份导入：保留其他题库进度
+  var backup=JSON.parse(JSON.stringify(S));
+  backup.profiles={other:{q:{9:{n:1,right:0}},log:{},wrong:[],rev:{},reason:{},trend:[]}};
+  backup.activeProfile='builtin';
+  adoptImportedStore(backup,true);
+  ok(S.activeProfile==='builtin'&&S.q[0].n===3,'导入新格式备份保留当前题库进度');
+  ok(S.profiles.other&&S.profiles.other.q[9],'导入备份保留其他题库进度');
+
+  // 旧格式备份导入：按旧行为归属当前题库
+  var legacy={schema:3,q:{5:{n:2,right:2}},log:{},wrong:[],rev:{},reason:{},trend:[],words:[],ach:[]};
+  adoptImportedStore(legacy,true);
+  ok(S.q[5]&&S.q[5].n===2,'旧格式备份可导入');
+  ok(S.activeProfile==='builtin','旧格式归入当前题库');
+
+  // 清理
+  S=normalizeStore(initStore()); S.seenGuide=true; save();
+})();
+
+/* ========== P. 间隔复习专项（v6.24） ========== */
+(function(){
+  var i=singles()[0];
+  function reset(qn,qr){ delete S.rev[i]; S.q[i]={n:qn||0,right:qr||0}; }
+  // 连续答对：逐级升箱、间隔递增
+  reset(); schedule(i,true); var b1=S.rev[i].box,d1=S.rev[i].due;
+  schedule(i,true); var b2=S.rev[i].box,d2=S.rev[i].due;
+  schedule(i,true);
+  ok(b1===1&&b2===2&&S.rev[i].box===3,'连续答对逐级升箱：'+[b1,b2,S.rev[i].box].join('/'));
+  ok(d1<d2&&S.rev[i].due>=d2,'连续答对间隔递增');
+  // 连续答错
+  reset(); schedule(i,false,'careless');
+  ok(S.rev[i].err===1&&S.rev[i].due===dateKey(),'第一次错当天重练');
+  schedule(i,false,'careless');
+  ok(S.rev[i].err===2&&S.rev[i].due>dateKey(),'连续错两次推到明天');
+  schedule(i,false,'concept');
+  ok(S.rev[i].due>dateKey(),'概念不清推到明天');
+  // 遗忘后重新答对：箱位重置、lapses 记录、间隔缩短
+  reset(10,9); S.rev[i]={box:5,due:addDays(-2),err:0,lapses:0};
+  schedule(i,false,'careless');
+  ok(S.rev[i].box===0&&S.rev[i].lapses===1,'高箱答错误记遗忘并归零');
+  schedule(i,true);
+  var gap=daysBetween(S.rev[i].due,dateKey());
+  ok(S.rev[i].box>=1&&S.rev[i].box<=2,'遗忘后答对重新从低箱开始：'+S.rev[i].box);
+  ok(gap<=2,'遗忘后间隔较短：'+gap+' 天');
+  // 长期未复习：逾期 30 天后答对，间隔应比正常阶梯短
+  reset(5,5); S.rev[i]={box:3,due:addDays(-30),err:0,lapses:0};
+  schedule(i,true);
+  var gap2=daysBetween(S.rev[i].due,dateKey());
+  ok(gap2<intDays(4),'长期未复习后间隔缩短：'+gap2+' < '+intDays(4));
+  // 掌握后重新遗忘：从高箱跌回、记录 lapse
+  reset(8,8); S.rev[i]={box:7,due:dateKey(),err:0,lapses:0};
+  schedule(i,false,'reading');
+  ok(S.rev[i].box===0&&S.rev[i].lapses===1,'掌握后答错也记录遗忘');
+  // 掌握后保留长间隔而不是删除
+  reset(8,8); S.rev[i]={box:4,due:dateKey(),err:0,lapses:0};
+  schedule(i,true); schedule(i,true);
+  ok(S.rev[i]&&S.rev[i].box>=6&&daysBetween(S.rev[i].due,dateKey())>30,'掌握后保留长间隔：'+S.rev[i].due);
+  // 复习队列只包含到期题
+  S.rev={}; S.rev[i]={box:1,due:addDays(3),err:0,lapses:0};
+  ok(dueList().indexOf(i)<0,'未到期不进入复习队列');
+  S.rev[i].due=dateKey();
+  ok(dueList().indexOf(i)>=0,'到期进入复习队列');
+  delete S.rev[i]; delete S.q[i];
+})();
+/* ========== Q. 薄弱点/推荐/周报口径（v6.24） ========== */
+(function(){
+  var pA=POINTS[0][0], pB=POINTS[1][0];
+  var idsA=pointIds(pA), idsB=pointIds(pB);
+  // 单样本不应被判为最薄弱
+  S=normalizeStore(initStore()); S.seenGuide=true;
+  S.q={}; S.q[idsA[0]]={n:1,right:0}; S.q[idsB[0]]={n:6,right:1};
+  var wl=weakList();
+  var a=wl.filter(function(x){return x.p===pA;})[0], b=wl.filter(function(x){return x.p===pB;})[0];
+  ok(a.low===true,'单样本标记为样本不足');
+  ok(b.shrunk>b.acc,'平滑后正确率向 50% 收缩');
+  ok(b.shrunk<0.5,'低正确率平滑后仍低于 50%');
+  ok(wl[0].low===false,'薄弱点榜首不是单样本');
+  ok(weakPoints(5).every(function(x){ return x.n>=2; }),'薄弱点推荐排除单样本');
+  // 推荐排序：无到期题时，最薄弱知识点优先
+  S=normalizeStore(initStore()); S.seenGuide=true; S.log={}; S.q={}; S.rev={}; S.wrong=[];
+  idsA.slice(0,3).forEach(function(i){ S.q[i]={n:3,right:0}; });
+  idsB.slice(0,3).forEach(function(i){ S.q[i]={n:3,right:3}; });
+  var rec=recommendList(8);
+  ok(rec.length>0 && QS[rec[0]][7]===pA,'推荐练习优先薄弱知识点：'+(rec.length?QS[rec[0]][7]:'空'));
+  // 周报与分析页口径一致
+  S=normalizeStore(initStore()); S.seenGuide=true; S.log={};
+  var d0=dateKey(), d1=addDays(-1), d2=addDays(-2);
+  S.log[d0]={n:4,r:3}; S.log[d1]={n:6,r:3}; S.log[d2]={n:2,r:2};
+  var rs=rangeStats(7);
+  ok(rs.tot===12&&rs.rgt===8&&rs.acc===67,'rangeStats 汇总正确：'+[rs.tot,rs.rgt,rs.acc].join('/'));
+  ok(rs.perDay.reduce(function(x,e){return x+e.n;},0)===rs.tot,'每天题量求和等于总量');
+  ok(rangeStats(7,7).tot===0,'上一周期无数据');
+  S.settings.weekly=70;
+  phase='report'; ui.reportSpan=7; render();
+  ok(html().includes('12 题 · 正确率 67%'),'周报总数与 rangeStats 一致');
+  ok(html().includes('本周目标'),'周报显示本周目标');
+  phase='stats'; ui.statSpan=7; render();
+  ok(html().includes('67%'),'分析页正确率同口径');
+  // 低样本提示
+  S=normalizeStore(initStore()); S.seenGuide=true; S.q={}; S.q[idsA[0]]={n:1,right:0};
+  phase='weak'; render();
+  ok(html().includes('样本不足'),'薄弱页显示样本不足区');
+  S=normalizeStore(initStore()); S.seenGuide=true; save();
+})();
+/* ========== R. 2022+ 答案标注 / render 拆分 / iOS 静态加固（v6.24） ========== */
+(function(){
+  // 2022 年后真题标注官方答案状态
+  var q22=-1;
+  for(var i=0;i<QS.length;i++){ if(/^202[2-6]/.test(QS[i][5]||'')){ q22=i; break; } }
+  ok(q22>=0,'存在 2022 年后真题');
+  ui.qid=q22; phase='showQ'; render();
+  ok(html().includes('官方未公布答案'),'2022 后真题标注答案来源');
+  var q20=-1;
+  for(var j=0;j<QS.length;j++){ if(/^2020/.test(QS[j][5]||'')){ q20=j; break; } }
+  ui.qid=q20; phase='showQ'; render();
+  ok(!html().includes('官方未公布答案'),'2020 真题不标注未公布');
+  // render 拆分
+  ok(typeof pageReport==='function'&&typeof pageStats==='function'&&typeof pageData==='function','页面渲染函数已独立');
+  phase='report'; ui.reportSpan=7; render(); ok(html().length>500,'报告页仍可渲染');
+  // iOS 加固静态检查
+  ok(htmlSrc.indexOf('calc(100dvh / var(--fs,1))')>=0,'字号使用 CSS 变量而非直接改 zoom');
+  ok(htmlSrc.indexOf('safe-area-inset-bottom')>=0,'底部安全区适配');
+  ok(htmlSrc.indexOf('function warmSpeech')>=0,'语音合成预热（iOS）');
+  ok(htmlSrc.indexOf('focusin')>=0,'键盘弹出时输入框滚动');
+  ok(htmlSrc.indexOf('format-detection')>=0,'iOS 电话号码自动识别关闭');
+})();
 console.log('\n========== 结果 ==========');
 console.log('通过 '+pass+' 项，失败 '+fail+' 项');
 if(fail) process.exitCode=1;

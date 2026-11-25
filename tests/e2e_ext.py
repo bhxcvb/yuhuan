@@ -84,6 +84,22 @@ def main():
             ok(ver.startswith('6.'), f'版本 {ver}')
             ok(total == 1460, f'题库 {total} 题')
             ok(pg.evaluate("Object.keys(getDict()).length") > 27000, '词典 > 27000 词')
+
+            print('[8] 多题库进度隔离')
+            pg.evaluate("""() => {
+              S.seenGuide=true; S.q={0:{n:2,right:1}}; S.wrong=[]; save();
+              var ds={QS:[['模拟','测试题干',['a','b'],0,'解析内容够长的测试题']],TR:{},NOS:{}};
+              ds.id=datasetHash(ds.QS);
+              switchDataset(ds);
+            }""")
+            pg.reload(); pg.wait_for_timeout(1000)
+            ok(pg.evaluate("QS.length") == 1, '自定义题库生效')
+            ok(pg.evaluate("Object.keys(S.q).length") == 0, '自定义题库使用独立进度')
+            ok(pg.evaluate("!!(S.profiles && S.profiles['builtin'] && S.profiles['builtin'].q[0])"), '内置题库进度已保存')
+            pg.evaluate("switchDataset(null)"); pg.wait_for_timeout(500)
+            pg.reload(); pg.wait_for_timeout(1000)
+            ok(pg.evaluate("QS.length") > 1000, '切回内置题库')
+            ok(pg.evaluate("S.q[0] && S.q[0].n === 2"), '切回后恢复内置题库进度')
             b.close()
     finally:
         srv.terminate()
