@@ -34,16 +34,20 @@
 2. 地址栏右侧出现「安装」图标（或菜单 → 应用 → 安装此站点）
 3. 确认安装，开始菜单会出现「语欢」
 
-### 方式 B：免安装包
+### 方式 B：轻量包（1.3 MB，推荐折腾）
 
-1. 从 [Releases](https://github.com/bhxcvb/yuhuan/releases) 下载 `语欢-Windows-x64.zip`（约 111 MB）
-2. 解压到任意目录（例如 `D:\语欢`）
-3. 双击 `语欢.exe` 运行
+1. 下载 [yuhuan-windows-lite.zip](https://github.com/bhxcvb/yuhuan/releases/download/v6.9/yuhuan-windows-lite.zip)
+2. 解压到任意目录
+3. 双击 **语欢.cmd**
 
-> 自带 Chromium，不需要装浏览器；不写注册表，删除文件夹即卸载。
-> 首次运行 Windows 可能提示「已保护你的电脑」→ 点「更多信息」→「仍要运行」（无签名证书所致，源码公开可自行审查）。
+它会用系统自带的 Edge 以「应用窗口」模式打开（无地址栏、无标签页），看起来和独立软件一样，体积只有 1.3 MB。
 
----
+> 想放桌面：右键 `语欢.cmd` → 发送到 → 桌面快捷方式。
+
+### 方式 C：独立 exe（自带浏览器，270 MB）
+
+按 `desktop/README.md` 用 Electron 打包，产物双击即用、不依赖 Edge。
+代价是自带 Chromium，体积大两个数量级，所以**没有放进 Release**。
 
 ## 四、macOS
 
