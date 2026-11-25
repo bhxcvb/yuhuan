@@ -1,5 +1,12 @@
 # 更新日志
 
+## v6.10
+
+- **PWA 一键安装**：Chrome / Edge 支持时，「我的 → 安装到桌面」直接出现「一键安装」按钮
+- Windows 完整免安装包上传到 Release（100 MB，自带浏览器）
+- 安装教程 `docs/INSTALL.md`：Android / iPhone / Windows / macOS 四种方式
+- README 重写「下载与安装」章节
+
 ## 打包流程
 
 `./build_release.sh 6.8` 一条命令完成：把版本号写入模板 → 注入题库/词典 → 生成单文件 → 同步 `web/` → 打包签名 APK。版本号只有一个来源，不会再出现「关于页写 6.4、安装包写 6.6」的情况。

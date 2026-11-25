@@ -103,17 +103,21 @@
 | **词法与搭配** | 比较级、the more the more、冠词、时间介词、形式主语 / 宾语 it、both…and、some / any、prefer |
 
 ## 5. Usage
-**怎么用**
+**下载与安装**
 
-| 平台 | 方式 | 说明 |
-|---|---|---|
-| **Android** | [下载 APK](https://github.com/bhxcvb/yuhuan/releases) | 约 1.3 MB，覆盖安装保留进度 |
-| **iPhone / iPad** | Safari 打开[网页版](https://bhxcvb.github.io/yuhuan/web/) → 分享 → 添加到主屏幕 | 全屏、离线可用（PWA） |
-| **Windows / macOS** | 浏览器打开网页版 → 地址栏「安装」 | 独立窗口，秒装 |
-| **Windows（独立包）** | `desktop/` 用 Electron 打包 | 约 270 MB，自带 Chromium |
-| **iOS 原生** | `ios/` 提供 Xcode 工程源码 | 需 Mac + Xcode 编译；未上架 App Store |
+| 平台 | 怎么装 | 体积 | 需要什么 |
+|---|---|---|---|
+| **Android** | 下载 [APK](https://github.com/bhxcvb/yuhuan/releases/download/v6.10/yuhuan-v6.10.apk)，允许未知来源安装 | 1.3 MB | 无 |
+| **iPhone / iPad** | Safari 打开[网页版](https://bhxcvb.github.io/yuhuan/web/) → 分享 → **添加到主屏幕** | 0（浏览器缓存） | 无 |
+| **Windows（推荐）** | Edge/Chrome 打开网页版 → 地址栏 **安装** 图标 | 0 | 系统自带浏览器 |
+| **Windows（独立包）** | 下载 [yuhuan-windows-x64.zip](https://github.com/bhxcvb/yuhuan/releases/download/v6.10/yuhuan-windows-x64.zip)，解压双击 `语欢.exe` | 100 MB | 无（自带浏览器） |
+| **macOS** | Chrome/Edge 打开网页版 → 安装 | 0 | 无 |
+| **源码运行** | `python3 -m http.server` 后打开 `web/` | — | Python |
 
-> 所有平台共用同一份 `web/index.html`，数据存在各自设备本地，可用「备份 / 恢复」迁移。
+> iPhone 和 Windows 的「安装」都是 PWA：装完有独立图标、全屏运行、断网可用，和原生 App 体验一致。
+> **iOS 原生 App** 需要 Mac + Xcode + 苹果开发者账号（99 美元/年），本仓库提供[工程源码](ios/README.md)与 Codemagic 配置，但没有 Mac 无法产出 .ipa。
+
+详细步骤（含常见问题、数据迁移）见 **[安装教程](docs/INSTALL.md)**。
 
 ## 6. Development
 **本地开发**

@@ -188,7 +188,7 @@ var DICT = {"a":{"t":"第一个字母 A; 一个; 第一的\\r；art. [计] 累�
 var MODULES = ["时态","语态与一致","从句","非谓语","虚拟语气","情态动词","倒装与强调","词法与搭配"];
 var REASONS = [["concept","概念不清"],["careless","粗心"],["reading","没看懂句子"]];
 var INT_DAYS = [1,1,2,4,7,15,30];
-var VERSION = "6.9";
+var VERSION = "6.10";
 var KEY = "yuhuan_v6";
 var OLD_KEYS = ["yuhuan_v5","grammar_v5"];
 
@@ -837,7 +837,8 @@ function render(){
         '<div class="hint" style="margin-top:6px">'+(daysLeft()!==null?"距考试还有 "+daysLeft()+" 天":"留空则不显示倒计时")+'</div>'+
         '<div class="row" style="margin-top:8px"><span>检查更新</span><button class="chip'+(S.settings.checkUpdate?" on":"")+'" data-act="toggleupd">'+(S.settings.checkUpdate?"已开启":"已关闭")+'</button></div>'+
         '<div class="row"><span>错误日志</span><button class="chip" data-act="errors">'+(S.errors.length?S.errors.length+" 条":"无")+'</button></div></div>'+
-      '<div class="sec"><h3>安装到桌面</h3><div class="hint">iPhone：Safari 打开本页 → 分享 → 添加到主屏幕<br>Android：浏览器菜单 → 添加到主屏幕<br>Windows / macOS：Edge 或 Chrome 地址栏右侧的安装图标<br>安装后全屏运行、断网可用。</div></div>'+
+      '<div class="sec"><h3>安装到桌面</h3>'+(deferredPrompt?'<button class="btn" data-act="installpwa">一键安装</button>':"")+
+        '<div class="hint" style="margin-top:'+(deferredPrompt?"10px":"0")+'">iPhone：Safari → 分享 → 添加到主屏幕<br>Android：浏览器菜单 → 添加到主屏幕<br>Windows / macOS：Edge/Chrome 地址栏右侧安装图标<br>安装后全屏运行、断网可用。</div></div>'+
       '<div class="sec"><details class="reward"><summary>❤ 支持作者（点开）</summary>'+
         '<div class="hint" style="margin:10px 0 8px">如果语欢帮到了你，可以扫码请我吃个包子。完全自愿，不影响任何功能。</div>'+
         '<img src="reward.webp" alt="赞赏码" style="width:100%;max-width:230px;display:block;margin:0 auto;border-radius:14px"><div class="hint center" style="margin-top:8px">微信扫码 · 感谢支持</div></details></div>'+
@@ -1100,6 +1101,12 @@ document.addEventListener("click", function(ev){
   if(act==="openupd"){ try{ window.open(UPD.url||"https://github.com/bhxcvb/yuhuan/releases","_blank"); }catch(e){ toast("请到 Releases 页面下载"); } return; }
   if(act==="toggleupd"){ S.settings.checkUpdate=!S.settings.checkUpdate; save(); render(); if(S.settings.checkUpdate) checkUpdate(true); return; }
   if(act==="errors"){ nav("errors"); return; }
+  if(act==="installpwa"){
+    if(!deferredPrompt){ toast("请用浏览器菜单里的「安装」"); return; }
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(c){ if(c.outcome==="accepted") toast("正在安装…"); deferredPrompt=null; render(); });
+    return;
+  }
   if(act==="clearerr"){ askConfirm("清空错误日志","只清空日志，不影响学习数据。","清空",function(){ S.errors=[]; save(); render(); }); return; }
   if(act==="copyerr"){ var t=errorDump(); if(!t){ toast("没有错误记录"); return; }
     try{ var ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); toast("已复制"); }catch(e){ toast("复制失败"); } return; }
@@ -1196,6 +1203,11 @@ try{ history.replaceState({phase:phase},""); }catch(e){}
 if(!S.seenGuide){ S.seenGuide=true; save(); phase="guide"; }
 render();
 setTimeout(function(){ checkUpdate(false); }, 1500);
+/* PWA：安装提示 */
+var deferredPrompt=null;
+window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); deferredPrompt=e; if(phase==="mine") render(); });
+window.addEventListener("appinstalled", function(){ deferredPrompt=null; toast("已安装到桌面"); });
+
 /* PWA：注册 Service Worker（仅当通过 http/https 打开） */
 if(typeof navigator!=="undefined" && "serviceWorker" in navigator && typeof location!=="undefined" && location.protocol.indexOf("http")===0){
   navigator.serviceWorker.register("sw.js").catch(function(){});
