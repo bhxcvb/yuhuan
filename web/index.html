@@ -323,8 +323,11 @@ function paperDone(src){ var ids=[]; for(var i=0;i<QS.length;i++) if((QS[i][5]||
 /* ---------- 间隔复习 ---------- */
 function dueList(){
   var today=dateKey(), out=[];
-  for(var k in S.rev){ if(S.rev[k].due<=today && !isDone?false:true){ if(S.rev[k]&&S.rev[k].due<=today) out.push(parseInt(k,10)); } }
-  return out.filter(function(i){ return i>=0&&i<QS.length; });
+  for(var k in S.rev){
+    var rv=S.rev[k];
+    if(rv && rv.due && rv.due<=today) out.push(parseInt(k,10));
+  }
+  return out.filter(function(i){ return i>=0 && i<QS.length; });
 }
 function dueCount(){ return dueList().length; }
 function schedule(i, ok){
@@ -420,31 +423,48 @@ function startTimer(){
 function stopTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
 function fmtTime(s){ s=Math.max(0,s); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
 function current(){ return ses&&ses.i<ses.list.length?ses.list[ses.i]:null; }
+function hasPassage(i){ return !!(QS[i]&&QS[i][6]); }
+function singles(){ var a=[]; for(var i=0;i<QS.length;i++) if(!hasPassage(i)) a.push(i); return a; }
+function duePassageGroups(){
+  var due=dueList(), byKey={};
+  for(var k=0;k<due.length;k++){
+    var i=due[k]; if(!hasPassage(i)) continue;
+    var key=(QS[i][5]||"")+"|"+QS[i][6].slice(0,40);
+    (byKey[key]=byKey[key]||[]).push(i);
+  }
+  return Object.keys(byKey).map(function(k){ return byKey[k]; });
+}
 
 function startToday(){
-  var rev=dueList().slice(0,20), fresh=nextNewList(S.settings.daily);
+  var rev=dueList().filter(function(i){ return !hasPassage(i); }).slice(0,20);
+  var fresh=nextNewList(S.settings.daily).filter(function(i){ return !hasPassage(i); });
   var list=rev.concat(fresh.filter(function(i){ return rev.indexOf(i)<0; }));
-  if(!list.length){ toast("今天没有任务了 🎉"); return; }
+  if(!list.length){ toast("今天没有单题任务了；阅读请用「复习篇章」"); return; }
   begin("plan","今日学习",list);
 }
 function startReview(){
-  var list=dueList();
-  if(!list.length){ toast("没有到期要复习的题"); return; }
+  var list=dueList().filter(function(i){ return !hasPassage(i); });
+  if(!list.length){ toast("没有到期的单题；阅读请用「复习篇章」"); return; }
   begin("review","间隔复习",shuffle(list).slice(0,20));
 }
+function reviewPassages(){
+  var gs=duePassageGroups();
+  if(!gs.length){ toast("没有到期的篇章"); return; }
+  startBlock(gs[0], "复习篇章");
+}
 function startDaily(){
-  var ids=[]; for(var i=0;i<QS.length;i++) if(!isDone(i)) ids.push(i);
-  if(!ids.length){ toast("全部答对了 🎉"); return; }
+  var ids=singles().filter(function(i){ return !isDone(i); });
+  if(!ids.length){ toast("单题都答对了 🎉"); return; }
   begin("daily","随机练习",shuffle(ids).slice(0,S.settings.daily));
 }
 function startPoint(p){
   var ids=pointIds(p); if(!ids.length){ toast("这个知识点还没有题"); return; }
-  var pool=ids.filter(function(i){ return !isDone(i); });
+  var pool=ids.filter(function(i){ return !isDone(i) && !hasPassage(i); });
   if(!pool.length){ pool=ids.slice(); }
   begin("point",p,shuffle(pool).slice(0,20));
 }
 function startModule(m){
-  var ids=moduleIds(m).filter(function(i){ return !isDone(i); });
+  var ids=moduleIds(m).filter(function(i){ return !isDone(i) && !hasPassage(i); });
   if(!ids.length){ toast("这个模块已经全部答对了"); return; }
   begin("module",m,shuffle(ids).slice(0,20));
 }
@@ -468,18 +488,19 @@ function startTimed(){
   begin("timed","限时阅读",g[pick],6*60);
 }
 function startMock(){
-  var ids=[]; for(var i=0;i<QS.length;i++){ var s=QS[i][5]||""; if(/^20\d\d/.test(s)) ids.push(i); }
-  if(!ids.length){ for(var j=0;j<QS.length;j++) ids.push(j); }
+  var ids=[]; for(var i=0;i<QS.length;i++){ var s=QS[i][5]||""; if(/^20\d\d/.test(s) && !hasPassage(i)) ids.push(i); }
+  if(!ids.length){ ids=singles(); }
   begin("mock","模拟考",shuffle(ids).slice(0,20),20*60);
 }
 function startDiag(){
   var ids=[]; for(var i=0;i<QS.length;i++) if(QS[i][7]) ids.push(i);
-  if(ids.length<10){ ids=[]; for(var j=0;j<QS.length;j++) ids.push(j); }
+  if(ids.length<10){ ids=singles(); }
   begin("diag","摸底",shuffle(ids).slice(0,20));
 }
 function startWrong(){
-  if(!S.wrong.length){ toast("错题本是空的"); return; }
-  begin("wrong","错题复习",shuffle(S.wrong.slice()).slice(0,20));
+  var w=S.wrong.filter(function(i){ return !hasPassage(i); });
+  if(!w.length){ toast(S.wrong.length? "错题里的篇章请在「按题型」里整篇重做":"错题本是空的"); return; }
+  begin("wrong","错题复习",shuffle(w).slice(0,20));
 }
 
 /* ---------- 篇章模式 ---------- */
@@ -552,7 +573,10 @@ function render(){
 
   if(phase==="home"){
     $("ttl").textContent="语欢";
-    var due=dueCount(), fresh=Math.min(S.settings.daily,QS.length-totalDone());
+    var due=dueList().filter(function(i){ return !hasPassage(i); }).length;
+    var dueP=duePassageGroups().length;
+    var singlesLeft=singles().filter(function(i){ return !isDone(i); }).length;
+    var fresh=Math.min(S.settings.daily, singlesLeft);
     var dl=daysLeft(), done=totalDone();
     $("right").textContent=done+" / "+QS.length;
     var planTitle = (due||fresh) ? (due? "今天先复习 "+due+" 题":"今天新学 "+fresh+" 题") : "今天的任务完成了";
@@ -567,9 +591,10 @@ function render(){
         '<div class="row2">'+
           '<div class="cell"><b>'+due+'</b><span>待复习</span></div>'+
           '<div class="cell"><b>'+fresh+'</b><span>新题</span></div>'+
-          '<div class="cell"><b>'+todayCount()+'</b><span>今日已做</span></div>'+
+          '<div class="cell"><b>'+dueP+'</b><span>待复习篇章</span></div>'+
         '</div>'+
         '<button class="btn" data-act="today">开始今日学习</button>'+
+        (dueP?'<button class="btn ghost" data-act="revpassages" style="margin-top:10px">复习 '+dueP+' 篇阅读（整篇作答）</button>':"")+
       '</div>'+
       '<div class="quick">'+
         '<button data-act="review"><span class="ic">🔁</span><b>复习</b></button>'+
@@ -701,7 +726,7 @@ function render(){
     var extra="";
     if(ses.mode==="mock"||ses.mode==="paper"){ var score=total?Math.round(ses.right/total*150):0; extra='<div class="sub" style="font-size:17px;color:var(--acc);margin-top:8px">折合 150 分制约 '+score+' 分</div>'; }
     v.innerHTML='<div class="hero center"><div style="font-size:44px">'+(pct>=80?"🏆":"💪")+'</div><div class="big">本轮完成</div>'+
-      '<div class="sub">答对 '+ses.right+' / '+total+' 题 · 正确率 '+pct+'%</div>'+extra+'</div>'+
+      '<div class="sub">答对 '+ses.right+' / '+total+' 题 · 正确率 '+pct+'%</div>'+extra+'</div>'+((ses.mode==="mock")?'<div class="hint center" style="margin-bottom:10px">阅读与七选五请到「按题型 → 选篇」整篇练习</div>':'')+
       '<div class="btns"><button class="btn ghost" data-act="home">回首页</button>'+
       (ses.label?'<button class="btn" data-act="prac" data-p="'+esc(ses.label)+'">再练一轮</button>':'<button class="btn" data-act="today">继续今日学习</button>')+'</div>';
     return;
@@ -949,6 +974,7 @@ document.addEventListener("click", function(ev){
   if(act==="pracmod"){ startModule(el.getAttribute("data-m")); return; }
   if(act==="today"){ startToday(); return; }
   if(act==="review"){ startReview(); return; }
+  if(act==="revpassages"){ reviewPassages(); return; }
   if(act==="daily"){ startDaily(); return; }
   if(act==="papers"){ nav("papers"); return; }
   if(act==="cats"){ nav("cats"); return; }
@@ -959,6 +985,8 @@ document.addEventListener("click", function(ev){
   if(act==="bpick"){ if(!ses||ses.submitted) return; var qi=parseInt(el.getAttribute("data-q"),10); ses.answers[qi]=parseInt(el.getAttribute("data-k"),10); render(); return; }
   if(act==="bsubmit"){
     if(!ses) return;
+    var unanswered=ses.list.filter(function(q){ return ses.answers[q]===undefined; });
+    if(unanswered.length && !ses._warned){ ses._warned=true; toast("还有 "+unanswered.length+" 题未答，再点一次交卷"); return; }
     var ids2=ses.list, r2=0, w2=0;
     for(var k=0;k<ids2.length;k++){ var id2=ids2[k], pick=ses.answers[id2]; if(pick===undefined) continue; var ok= pick===QS[id2][3]; if(ok) r2++; else w2++; record(id2,ok); }
     ses.right=r2; ses.wrong=w2; ses.submitted=true; checkAch(); render(); return;
