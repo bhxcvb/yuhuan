@@ -17,7 +17,7 @@
 
 [▶️ 15 秒宣传片](https://github.com/bhxcvb/yuhuan/releases/latest/download/yuhuan-promo-15s.mp4) · [📦 下载 APK](https://github.com/bhxcvb/yuhuan/releases) · [📖 安装教程](docs/INSTALL.md) · [🏠 官网](https://bhxcvb.github.io/yuhuan/) · [📝 更新日志](CHANGELOG.md) · [🐛 反馈](https://github.com/bhxcvb/yuhuan/issues)
 
-**完全离线**：做题不需要网络，无账号、无广告、无埋点。（Android 版只申请「网络」权限用于检查更新，可在设置里关闭；朗读用系统 TTS）
+**离线优先**：做题、复习、查词全部不需要网络；无账号、无广告、无埋点。Android 版只申请「网络」权限用于检查更新（可在设置关闭），朗读用系统 TTS。
 
 </div>
 
@@ -179,7 +179,7 @@ DICT[word] = { t: "中文释义", p: "/音标/" }
 
 **数据口径（审计说明）**
 
-- 译文 1265 条：985 道知识点题 + 280 道篇章题；#0–#194（45 道模块基础题 / 140 道语法填空 / 10 道短文改错）没有选项译文，属设计取舍。
+- 译文 1265 条：1040 道知识点/模块题中的 985 道 + 280 道篇章题；#0–#194（45 道模块基础题 / 140 道语法填空 / 10 道短文改错）没有选项译文，属设计取舍。
 - #0–#44 这 45 道模块基础题没有 `来源`/`知识点` 字段，会出现在随机/模块/模拟考中，但不参与知识点掌握度统计。
 - 部分双空题选项写作 `"the; /"` 形式，表示两个空格的答案；界面会有说明。
 - 2022 年后的真题官方未公开答案，由项目自行解答，欢迎通过「这题有问题」反馈。
@@ -190,7 +190,7 @@ DICT[word] = { t: "中文释义", p: "/音标/" }
 ```bash
 node tools/extract-data.js /tmp/data.json && node tools/validate-data.js /tmp/data.json   # 题库结构校验
 node tools/build-app.js --check    # 校验产物与模板一致（CI 会跑）
-node tests/basic.test.js          # 200 项基础回归（无依赖）
+node tests/basic.test.js          # 253 项基础回归（无依赖）
 python3 tests/e2e.py              # 21 项端到端（需 Playwright）
 python3 tests/e2e_ext.py          # 15 项离线 / 数据完整性 / 备份恢复（需 Playwright）
 ```
