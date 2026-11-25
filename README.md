@@ -7,9 +7,9 @@
 **单词背了不少，语法题还是一错一大片？** 语欢就是为这种情况做的：14 套高考真题拆成 1460 道题，按 51 个语法点组织，每道题都有「考点 + 依据 + 排除」的解析，阅读配全文译文。不背单词，只练语法。
 
 [![License](https://img.shields.io/badge/license-MIT-5b9dff?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-6.16-8f7bff?style=flat-square)](https://github.com/bhxcvb/yuhuan/releases)
+[![Release](https://img.shields.io/github/v/release/bhxcvb/yuhuan?style=flat-square&color=8f7bff&label=release)](https://github.com/bhxcvb/yuhuan/releases/latest)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS%20%7C%20Windows-3ecf8e?style=flat-square)](#5-usage)
-[![CI](https://img.shields.io/github/actions/workflow/status/bhxcvb/yuhuan/check.yml?style=flat-square&label=CI)](https://github.com/bhxcvb/yuhuan/actions)
+[![CI](https://github.com/bhxcvb/yuhuan/actions/workflows/check.yml/badge.svg)](https://github.com/bhxcvb/yuhuan/actions/workflows/check.yml)
 
 ![语欢 15 秒演示](screenshots/demo.gif)
 

@@ -9,7 +9,7 @@
 ## 一、Android（推荐 APK）
 
 1. 手机浏览器打开 [Releases 页面](https://github.com/bhxcvb/yuhuan/releases)
-2. 下载 `yuhuan-v6.9.apk`（约 1.9 MB）
+2. 在 [Releases](https://github.com/bhxcvb/yuhuan/releases/latest) 下载最新的 `yuhuan-v*.apk`（约 1.9 MB）
 3. 点开安装包，首次会提示「未知来源」→ 允许来自此来源
 4. 安装完成，桌面出现「语欢」图标
 
@@ -38,7 +38,7 @@
 
 ### 方式 B：免安装包（100 MB，自带浏览器）
 
-1. 下载 [yuhuan-windows-x64.zip](https://github.com/bhxcvb/yuhuan/releases/download/v6.9/yuhuan-windows-x64.zip)
+1. 在 [Releases](https://github.com/bhxcvb/yuhuan/releases/latest) 下载 `yuhuan-windows-x64.zip`
 2. 解压到任意目录（例如 `D:\语欢`）
 3. 双击 `语欢.exe`
 
