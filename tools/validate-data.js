@@ -35,7 +35,9 @@ QS.forEach((q, i) => {
 Object.keys(TR).forEach(k => {
   const t = TR[k];
   if (!t || !t.q) errs.push(`译文 #${k} 缺题干`);
-  if (t && t.o && t.o.length && t.o.length !== 4) warns.push(`译文 #${k} 选项数 ${t.o.length}`);
+  const q = QS[k];
+  const wantN = q && q[0] === '真题·七选五' ? 7 : 4;
+  if (t && t.o && t.o.length && t.o.length !== wantN) warns.push(`译文 #${k} 选项数 ${t.o.length}（应为 ${wantN}）`);
 });
 // 知识点
 POINTS.forEach(p => {
@@ -48,7 +50,7 @@ POINTS.forEach(p => {
 // 重复题干
 const seen = new Map();
 QS.forEach((q, i) => {
-  const stem = String(q[1]).replace(/\s+/g, ' ').trim().toLowerCase();
+  const stem = String(q[1]).replace(/\s+/g, ' ').replace(/_{2,}/g, '____').trim().toLowerCase();
   const isReal = /^20\d\d/.test(q[5] || '');
   // 真题同一句题干在不同卷里出现是正常的，用 来源+题干+选项 去重
   const key = isReal ? `${q[5]}|${stem}|${(q[2] || []).join('~')}` : stem;
@@ -56,7 +58,7 @@ QS.forEach((q, i) => {
   else seen.set(key, i);
 });
 // 范文
-WRITING.forEach((w, i) => { if (!w.t || !w.en || !w.zh) warns.push(`范文 #${i} 字段不全`); });
+WRITING.forEach((w, i) => { if (!w.title || !w.en || !w.zh) warns.push(`范文 #${i} 字段不全`); });
 
 const realCount = QS.filter(q => /^20\d\d/.test(q[5] || '')).length;
 console.log(`题数 ${QS.length}（真题 ${realCount}）｜译文 ${Object.keys(TR).length}｜知识点 ${POINTS.length}｜范文 ${WRITING.length}`);

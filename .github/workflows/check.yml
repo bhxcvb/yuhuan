@@ -16,6 +16,9 @@ jobs:
         run: |
           node -e "const fs=require('fs');const h=fs.readFileSync('web/index.html','utf8');const m=h.match(/<script>([\s\S]*?)<\/script>/);if(!m)throw new Error('找不到 script');fs.writeFileSync('/tmp/app.js',m[1]);"
           node --check /tmp/app.js
+      - name: 构建一致性（模板 ↔ 产物）
+        run: node tools/build-app.js --check
+
       - name: 题库结构校验
         run: node tools/extract-data.js /tmp/data.json && node tools/validate-data.js /tmp/data.json
 

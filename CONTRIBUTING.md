@@ -2,6 +2,19 @@
 
 感谢你愿意帮语欢变得更好。下面是几个常见的贡献方式。
 
+## 构建与自测
+
+```bash
+# 改 src/app-template.html 后重新生成产物
+node tools/build-app.js
+node tools/build-app.js --check   # 应输出「构建一致」
+
+node tools/extract-data.js /tmp/data.json && node tools/validate-data.js /tmp/data.json
+node tests/basic.test.js
+```
+
+不要直接编辑 `web/index.html`（产物，会被构建覆盖）。
+
 ## 报告问题
 
 到 [Issues](https://github.com/bhxcvb/yuhuan/issues/new/choose) 选择模板：

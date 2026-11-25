@@ -1,7 +1,7 @@
 {
   "name": "语欢 · 高考英语语法刷题",
   "short_name": "语欢",
-  "description": "专注英语语法的离线刷题 App：1670 题 / 14 套真题 / 51 个语法点",
+  "description": "专注英语语法的离线刷题 App：高考真题 + 51 个语法点 + 逐题解析与译文",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -147,9 +147,13 @@ ANDROID_JAR=/path/to/android.jar R8_JAR=/path/to/r8.jar ./build/build-apk.sh
 
 ```
 index.html            官网落地页
-web/index.html        完整应用（题库内联，单文件，约 2.4 MB）
+web/index.html        完整应用（构建产物，题库内联，单文件，约 6.1 MB）
+src/app-template.html 可读源码模板（界面 + 逻辑，改代码改这里）
+tools/build-app.js    构建脚本：模板 + 数据 → web/index.html
+desktop/              Electron 桌面外壳
+ios/                  iOS WKWebView 外壳
 app/                  Android 外壳（MainActivity + Manifest + 图标）
-build/build-apk.sh    一键打包脚本
+build/build-apk.sh    一键打包 APK 脚本
 screenshots/          界面截图
 docs/                 横幅、图标、二维码
 .github/workflows/    CI：推送时校验脚本语法与题库结构
@@ -168,21 +172,29 @@ KB[知识点] = { summary, rules[], examples[], mistakes[], trap }
 DICT[word] = { t: "中文释义", p: "/音标/" }
 ```
 
-想换成自己的题库，改这些变量即可，界面逻辑不用动。
+想换成自己的题库，改这些变量即可，界面逻辑不用动。也可以在应用里「我的 → 备份 / 恢复 → 题库 → 导入题库」直接导入 JSON（格式：`{"QS":[...],"TR":{...},"NOS":{...}}`），导入前会自动备份、可撤销。
+
+**数据口径（审计说明）**
+
+- 译文 1265 条：985 道知识点题 + 280 道篇章题；#0–#194（45 道模块基础题 / 140 道语法填空 / 10 道短文改错）没有选项译文，属设计取舍。
+- #0–#44 这 45 道模块基础题没有 `来源`/`知识点` 字段，会出现在随机/模块/模拟考中，但不参与知识点掌握度统计。
+- 部分双空题选项写作 `"the; /"` 形式，表示两个空格的答案；界面会有说明。
+- 2022 年后的真题官方未公开答案，由项目自行解答，欢迎通过「这题有问题」反馈。
 
 ## 9. Tests
 **测试**
 
 ```bash
 node tools/extract-data.js /tmp/data.json && node tools/validate-data.js /tmp/data.json   # 题库结构校验
-node tests/basic.test.js          # 172 项基础回归（无依赖）
+node tools/build-app.js --check    # 校验产物与模板一致（CI 会跑）
+node tests/basic.test.js          # 200 项基础回归（无依赖）
 python3 tests/e2e.py              # 21 项端到端（需 Playwright）
 python3 tests/e2e_ext.py          # 15 项离线 / 数据完整性 / 备份恢复（需 Playwright）
 ```
 
 CI 每次 push 跑：题库结构校验（答案索引、选项、解析、知识点归属、重复题）、`基础回归`、`端到端`。细节见 [tests/README.md](tests/README.md)。
 
-**性能**：单文件 5.5 MB，首屏 `DOMContentLoaded` 约 0.45 s（词典懒加载，首次查词再解析）；无 ES6+ 语法，兼容旧版 WebView。
+**性能**：单文件约 6.1 MB，首屏 `DOMContentLoaded` 约 0.45 s（词典懒加载，首次查词再解析）；无 ES6+ 语法，兼容旧版 WebView。
 
 ## 10. FAQ
 **常见问题**
@@ -196,7 +208,7 @@ CI 每次 push 跑：题库结构校验（答案索引、选项、解析、知�
 <details>
 <summary><b>为什么朗读没声音？</b></summary>
 
-需要系统有「文字转语音」引擎。没有引擎时朗读按钮会自动隐藏，去系统设置安装一个即可。
+需要系统有「文字转语音」引擎。APK 版调用系统 TTS；网页版用浏览器的语音合成，若系统没有英文语音会提示「此环境不支持朗读」，去系统设置安装一个 TTS 引擎即可。
 </details>
 
 <details>

@@ -14,7 +14,8 @@ javac -source 8 -target 8 -bootclasspath "$AJ" -d out app/MainActivity.java
 java -cp "$R8" com.android.tools.r8.D8 --min-api 21 --lib "$AJ" --output dex out/com/dsh/grammar/*.class
 
 mkdir -p apk/assets
-cp index.html apk/assets/index.html
+cp web/index.html apk/assets/index.html
+cp reward.webp apk/assets/reward.webp
 aapt package -f -M app/AndroidManifest.xml -S app/res -A apk/assets -I "$AJ" -F apk/unsigned.apk
 (cd dex && aapt add ../apk/unsigned.apk classes.dex)
 zipalign -f 4 apk/unsigned.apk apk/aligned.apk

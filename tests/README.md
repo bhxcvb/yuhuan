@@ -9,7 +9,9 @@ node tools/extract-data.js /tmp/data.json     # 从 web/index.html 取出题库
 node tools/validate-data.js /tmp/data.json    # 校验
 ```
 
-检查：题目结构、分类、选项数量（七选五 7 个 / 其余 4 个）、选项重复、答案索引、解析长度、知识点是否存在、译文引用、重复题、范文完整性。
+检查：题目结构、分类、选项数量（七选五 7 个 / 其余 4 个）、选项重复、答案索引、解析长度、知识点是否存在、译文引用（七选五译文 7 个选项）、重复题、范文完整性。
+
+另外 CI 会跑 `node tools/build-app.js --check`，确认 `web/index.html` 与 `src/app-template.html` 同步（防止直接改产物）。
 
 ## 2. 基础回归（无依赖）
 
@@ -17,7 +19,7 @@ node tools/validate-data.js /tmp/data.json    # 校验
 node tests/basic.test.js
 ```
 
-172 项断言：题库与词典规模、出题规则（阅读/七选五不进单题流程）、页面渲染、答题流程、错因、间隔复习调度（升箱、连错推后、错因影响）、章节/计时、查词与中文反查、主题与字号、备份与撤销、schema 迁移、重复题隐藏。
+199 项断言：题库与词典规模、出题规则（阅读/七选五不进单题流程）、页面渲染、答题流程、错因、间隔复习调度（升箱、连错推后、错因影响）、章节/计时、查词与中文反查、主题与字号、备份与撤销、schema 迁移、重复题隐藏。
 
 ## 3. 端到端（需要 Playwright）
 

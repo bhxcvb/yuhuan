@@ -3,6 +3,7 @@
 ## 直接运行
 
 ```bash
+node tools/build-app.js   # 先生成 desktop/app/index.html（构建产物不入库）
 cd desktop
 npm install
 npm start

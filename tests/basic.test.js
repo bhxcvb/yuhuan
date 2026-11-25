@@ -228,6 +228,7 @@ ok(isCJK('网络')&&!isCJK('network'),'中英文判断');
   localStorage.removeItem("yuhuan_pre-import-test");
   // 重复题隐藏
   ok(Object.keys(dupSet()).length>0,'检测到重复题并隐藏：'+Object.keys(dupSet()).length+' 条');
+  ok(Object.keys(dupSet()).length>=40,'重复题归一化后隐藏 ≥40 条（实际 '+Object.keys(dupSet()).length+'）');
   var dupList=Object.keys(dupSet()).map(Number);
   ok(dupList.every(function(x){return singles().indexOf(x)<0;}),'重复题不在单题池中');
   // 周目标
@@ -251,6 +252,78 @@ ok(S.errors[S.errors.length-1].m.indexOf('测试异常')>=0,'错误内容记录'
 ok(errorDump().indexOf('测试异常')>=0,'错误可导出');
 phase='errors'; render();
 ok(html().includes('测试异常'),'错误日志页显示');
+
+/* ========== N. 数据安全与学习系统增强（v6.23） ========== */
+(function(){
+  // 规范化：残缺/旧数据不崩溃
+  var n=normalizeStore({q:{},settings:{theme:"light"}});
+  ok(Array.isArray(n.wrong)&&Array.isArray(n.words)&&n.log&&n.rev,'残缺数据补齐');
+  ok(typeof n.settings.daily==="number"&&n.settings.theme==="light",'规范化保留已有设置');
+  var n2=normalizeStore({q:{"a":"bad","1":{n:3,right:2,extra:1}},log:{x:{n:5,r:3}},rev:{2:{box:"x"}}});
+  ok(!n2.q.a&&n2.q[1].n===3&&n2.q[1].extra===undefined,'q 字段清洗');
+  ok(n2.log.x.n===5,'log 字段清洗');
+  ok(!n2.rev[2],'rev 缺少 due 时丢弃');
+
+  // 进度备份不含自定义题库
+  var oldDS=S.dataset; S.dataset={QS:[[1]],TR:{},NOS:{}};
+  ok(progressDump().indexOf('"dataset"')<0,'进度备份不含题库');
+  if(oldDS===undefined) delete S.dataset; else S.dataset=oldDS;
+
+  // 真实正确率 / 掌握度（不是覆盖率）
+  var pt=POINTS[0][0], ids=pointIds(pt);
+  S.q={}; S.q[ids[0]]={n:4,right:1};
+  var st=pointStats(pt);
+  ok(st.n===4&&st.right===1&&Math.abs(st.acc-0.25)<1e-9,'知识点统计用真实正确率');
+  var mv=pointMastery(pt);
+  ok(mv>=15&&mv<=45,'掌握度按正确率+覆盖度计：'+mv);
+  var wl=weakList();
+  ok(wl[0].p===pt,'真实正确率最低的知识点排最前');
+  ok(typeof wl[0].n==='number','薄弱点带作答次数');
+  ok(masteredPoints()>=0,'掌握点数计算（新口径）');
+
+  // 动态 SRS：掌握后保留长间隔，不再删除记录
+  var i2=singles()[0]; S.q[i2]={n:5,right:5};
+  S.rev[i2]={box:5,due:dateKey(),err:0,lapses:0};
+  schedule(i2,true);
+  ok(S.rev[i2]&&S.rev[i2].box===6,'高箱答对继续升级');
+  ok(S.rev[i2].due>addDays(20),'掌握后保留长间隔：'+S.rev[i2].due);
+  S.rev[i2]={box:5,due:dateKey(),err:0,lapses:0};
+  schedule(i2,false,"careless"); schedule(i2,false,"careless");
+  ok(S.rev[i2].lapses===1,'高箱遗忘记 lapses');
+
+  // 智能推荐：不含篇章、数量正确
+  var rec=recommendList(12);
+  ok(rec.length>0&&rec.every(function(x){return !QS[x][6];}),'推荐练习不含篇章题');
+
+  // 错题自动分类
+  var wid=pointIds(POINTS[0][0])[0]; S.reason={}; S.q[wid]={n:4,right:0};
+  S.reason[wid]={concept:1};
+  ok(wrongCategory(wid)==='concept','用户标记错因优先');
+  S.reason={};
+  ok(wrongCategory(wid)==='concept','未标记时按低正确率推断概念不清');
+  S.q[wid]={n:4,right:4};
+  ok(wrongCategory(wid)==='careless','未标记时高正确率推断粗心');
+
+  // 周报目标/建议、薄弱页、备份页
+  S.log[dateKey()]={n:5,r:4}; S.settings.weekly=70; S.wrong=[];
+  phase='report'; ui.reportSpan=7; render();
+  ok(html().includes('本周目标'),'周报含目标');
+  ok(html().includes('下周建议'),'周报含下周建议');
+  ok(html().includes('错题分类'),'周报含错题分类');
+  phase='weak'; render();
+  ok(html().includes('真实正确率'),'薄弱页显示真实正确率');
+  phase='data'; render();
+  ok(html().includes('题库')&&html().includes('保存为文件'),'备份页含题库与文件备份');
+  var old=S; S=normalizeStore({schema:1,q:{},log:{},wrong:[],rev:{},reason:{},words:[],ach:[]}); phase='home'; render();
+  ok(html().length>0,'旧数据结构可正常渲染');
+  S=old;
+
+  // PWA 与资源
+  var sw=fs.readFileSync(path.join(__dirname,'..','web','sw.js'),'utf8');
+  ok(sw.indexOf('navigate')>=0,'SW 导航请求走 network-first');
+  ok(sw.indexOf('yuhuan-v1')<0,'SW 缓存版本已升级');
+  ok(fs.existsSync(path.join(__dirname,'..','web','reward.webp')),'web/reward.webp 存在');
+})();
 
 console.log('\n========== 结果 ==========');
 console.log('通过 '+pass+' 项，失败 '+fail+' 项');
