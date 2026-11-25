@@ -5,3 +5,7 @@ out/
 dex/
 node_modules/
 .DS_Store
+node_modules/
+dist/
+desktop/app/index.html
+ios/Yuhuan/app/index.html

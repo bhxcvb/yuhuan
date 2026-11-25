@@ -105,17 +105,15 @@
 ## 5. Usage
 **怎么用**
 
-**网页版**（手机 / 电脑浏览器直接打开，可添加到主屏幕）
+| 平台 | 方式 | 说明 |
+|---|---|---|
+| **Android** | [下载 APK](https://github.com/bhxcvb/yuhuan/releases) | 约 1.3 MB，覆盖安装保留进度 |
+| **iPhone / iPad** | Safari 打开[网页版](https://bhxcvb.github.io/yuhuan/web/) → 分享 → 添加到主屏幕 | 全屏、离线可用（PWA） |
+| **Windows / macOS** | 浏览器打开网页版 → 地址栏「安装」 | 独立窗口，秒装 |
+| **Windows（独立包）** | `desktop/` 用 Electron 打包 | 约 270 MB，自带 Chromium |
+| **iOS 原生** | `ios/` 提供 Xcode 工程源码 | 需 Mac + Xcode 编译；未上架 App Store |
 
-```
-https://bhxcvb.github.io/yuhuan/web/
-```
-
-**Android APK**
-
-到 [Releases](https://github.com/bhxcvb/yuhuan/releases) 下载 `yuhuan-*.apk`，允许未知来源安装即可（约 700 KB）。
-
-**第一次用建议**：先做 20 题摸底 → 首页「开始今日学习」→ 每天按计划复习。
+> 所有平台共用同一份 `web/index.html`，数据存在各自设备本地，可用「备份 / 恢复」迁移。
 
 ## 6. Development
 **本地开发**
