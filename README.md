@@ -7,12 +7,12 @@
 **不背单词，只练语法。** 14 套高考真题拆成 1670 道题，按 51 个语法点组织，每题都有「考点 + 依据 + 排除」的解析。
 
 [![License](https://img.shields.io/badge/license-MIT-5b9dff?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-6.4-8f7bff?style=flat-square)](https://github.com/bhxcvb/yuhuan/releases)
+[![Version](https://img.shields.io/badge/version-6.11-8f7bff?style=flat-square)](https://github.com/bhxcvb/yuhuan/releases)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Web-3ecf8e?style=flat-square)](#5-usage)
 [![Offline](https://img.shields.io/badge/offline-100%25-3ecf8e?style=flat-square)](#1-overview)
 [![CI](https://img.shields.io/github/actions/workflow/status/bhxcvb/yuhuan/check.yml?style=flat-square&label=CI)](https://github.com/bhxcvb/yuhuan/actions)
 
-[安装教程](docs/INSTALL.md) · [官网](https://bhxcvb.github.io/yuhuan/) · [网页版](https://bhxcvb.github.io/yuhuan/web/) · [下载 APK](https://github.com/bhxcvb/yuhuan/releases) · [更新日志](CHANGELOG.md) · [反馈问题](https://github.com/bhxcvb/yuhuan/issues)
+[▶️ 15 秒宣传片](https://github.com/bhxcvb/yuhuan/releases/download/v6.11/yuhuan-promo-15s.mp4) · [安装教程](docs/INSTALL.md) · [官网](https://bhxcvb.github.io/yuhuan/) · [网页版](https://bhxcvb.github.io/yuhuan/web/) · [下载](https://github.com/bhxcvb/yuhuan/releases) · [更新日志](CHANGELOG.md) · [反馈](https://github.com/bhxcvb/yuhuan/issues)
 
 </div>
 
