@@ -183,7 +183,7 @@ var DICT = {"a":{"t":"第一个字母 A; 一个; 第一的\\r；art. [计] 累�
 var MODULES = ["时态","语态与一致","从句","非谓语","虚拟语气","情态动词","倒装与强调","词法与搭配"];
 var REASONS = [["concept","概念不清"],["careless","粗心"],["reading","没看懂句子"]];
 var INT_DAYS = [1,1,2,4,7,15,30];
-var VERSION = "6.6";
+var VERSION = "6.7";
 var KEY = "yuhuan_v6";
 var OLD_KEYS = ["yuhuan_v5","grammar_v5"];
 
@@ -208,7 +208,7 @@ function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random
 function dateKey(d){ d=d||new Date(); var p=function(n){return String(n).padStart(2,"0");}; return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
 function addDays(n){ var d=new Date(); d.setDate(d.getDate()+n); return dateKey(d); }
 
-function initStore(){ return {q:{},log:{},wrong:[],rev:{},reason:{},words:[],ach:[],seenGuide:false,diag:false,settings:{theme:"dark",daily:10,examDate:""}}; }
+function initStore(){ return {q:{},log:{},wrong:[],rev:{},reason:{},words:[],ach:[],seenGuide:false,diag:false,settings:{theme:"dark",daily:10,examDate:"",checkUpdate:true}}; }
 function loadStore(){
   var raw=null, migrated=false;
   try{ raw=localStorage.getItem(KEY); }catch(e){}
@@ -222,7 +222,9 @@ function loadStore(){
   if(typeof S.settings.theme!=="string") S.settings.theme="dark";
   if(typeof S.settings.examDate!=="string") S.settings.examDate="";
   if(typeof S.settings.accent!=="string") S.settings.accent="blue";
-  if(!S.log) S.log={}; if(!S.wrong) S.wrong=[]; if(!S.rev) S.rev={}; if(!S.reason) S.reason={}; if(!S.words) S.words=[]; if(!S.ach) S.ach=[];
+  if(typeof S.settings.checkUpdate!=="boolean") S.settings.checkUpdate=true;
+  if(!S.log) S.log={};
+  if(!S.errors) S.errors=[]; if(!S.wrong) S.wrong=[]; if(!S.rev) S.rev={}; if(!S.reason) S.reason={}; if(!S.words) S.words=[]; if(!S.ach) S.ach=[];
   if(migrated) save();
 }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ toast("保存失败，存储空间可能已满"); } }
@@ -253,6 +255,59 @@ function lookup(w){
   return null;
 }
 function meanOf(w){ var r=lookup(w); return r? r.d.t : ""; }
+
+/* ---------- 错误日志 ---------- */
+function logError(msg, stack){
+  try{
+    if(!S.errors) S.errors=[];
+    S.errors.push({t:Date.now(), v:VERSION, p:typeof phase==="string"?phase:"", m:String(msg).slice(0,300), s:String(stack||"").slice(0,600)});
+    if(S.errors.length>30) S.errors=S.errors.slice(-30);
+    save();
+  }catch(e){}
+}
+window.onerror=function(m,src,line,col,err){ logError(m, (err&&err.stack)||(src+":"+line+":"+col)); return false; };
+window.addEventListener("unhandledrejection", function(ev){ try{ logError("unhandledrejection: "+(ev.reason&&ev.reason.message||ev.reason), ev.reason&&ev.reason.stack); }catch(e){} });
+function errorDump(){ return (S.errors||[]).map(function(e){ return new Date(e.t).toISOString()+" ["+e.v+"/"+e.p+"] "+e.m+"\n"+(e.s||""); }).join("\n\n"); }
+
+/* ---------- 更新检查 ---------- */
+var UPD={checked:false,latest:null,url:null};
+function checkUpdate(force){
+  if(!S.settings.checkUpdate && !force) return;
+  var cacheKey="update_check";
+  try{
+    var raw=localStorage.getItem(cacheKey);
+    if(raw && !force){ var c=JSON.parse(raw); if(Date.now()-c.t<12*3600*1000){ compareVersion(c.tag,c.url); return; } }
+  }catch(e){}
+  try{
+    var xhr=new XMLHttpRequest();
+    xhr.open("GET","https://api.github.com/repos/bhxcvb/yuhuan/releases/latest",true);
+    xhr.timeout=8000;
+    xhr.onload=function(){
+      try{
+        if(xhr.status!==200) return;
+        var j=JSON.parse(xhr.responseText);
+        var tag=(j.tag_name||"").replace(/^v/,"");
+        var url=j.html_url||"https://github.com/bhxcvb/yuhuan/releases";
+        try{ localStorage.setItem(cacheKey, JSON.stringify({t:Date.now(),tag:tag,url:url})); }catch(e){}
+        compareVersion(tag,url);
+      }catch(e){}
+    };
+    xhr.onerror=function(){};
+    xhr.send();
+  }catch(e){}
+}
+function compareVersion(tag,url){
+  if(!tag) return;
+  UPD.latest=tag; UPD.url=url;
+  var cur=VERSION.split(".").map(Number), nw=tag.split(".").map(Number);
+  var newer=false;
+  for(var i=0;i<Math.max(cur.length,nw.length);i++){
+    var a=cur[i]||0,b=nw[i]||0;
+    if(b>a){ newer=true; break; }
+    if(b<a) break;
+  }
+  if(newer && phase==="home") render();
+}
 
 /* ---------- 查词联想 ---------- */
 var WORDSORT=null;
@@ -581,6 +636,7 @@ function render(){
     $("right").textContent=done+" / "+QS.length;
     var planTitle = (due||fresh) ? (due? "今天先复习 "+due+" 题":"今天新学 "+fresh+" 题") : "今天的任务完成了";
     v.innerHTML =
+      (UPD.latest && UPD.latest!==VERSION ? '<div class="sec" style="padding:14px;border:1px solid var(--acc)"><div style="display:flex;align-items:center"><div style="flex:1"><b>发现新版本 v'+esc(UPD.latest)+'</b><div class="hint">当前 v'+VERSION+'，点右侧或到 Releases 下载</div></div><button class="go" data-act="openupd">查看</button></div></div>' : "")+
       '<div class="sec" style="padding:12px;margin-bottom:12px">'+
         '<input class="search" id="hq" style="margin-bottom:0" placeholder="查词：输入字母，实时联想" value="'+esc(ui.hq||"")+'">'+
         '<div id="hres"></div>'+
@@ -756,7 +812,9 @@ function render(){
       '<div class="sec"><h3>设置</h3>'+
         '<div class="row"><span>每天新题</span><input type="number" id="daily" min="5" max="60" value="'+S.settings.daily+'"></div>'+
         '<div class="row"><span>高考日期</span><input type="date" id="exam" value="'+esc(S.settings.examDate)+'"></div>'+
-        '<div class="hint" style="margin-top:6px">'+(daysLeft()!==null?"距考试还有 "+daysLeft()+" 天":"留空则不显示倒计时")+'</div></div>'+
+        '<div class="hint" style="margin-top:6px">'+(daysLeft()!==null?"距考试还有 "+daysLeft()+" 天":"留空则不显示倒计时")+'</div>'+
+        '<div class="row" style="margin-top:8px"><span>检查更新</span><button class="chip'+(S.settings.checkUpdate?" on":"")+'" data-act="toggleupd">'+(S.settings.checkUpdate?"已开启":"已关闭")+'</button></div>'+
+        '<div class="row"><span>错误日志</span><button class="chip" data-act="errors">'+(S.errors.length?S.errors.length+" 条":"无")+'</button></div></div>'+
       '<div class="sec"><details class="reward"><summary>❤ 支持作者（点开）</summary>'+
         '<div class="hint" style="margin:10px 0 8px">如果语欢帮到了你，可以扫码请我吃个包子。完全自愿，不影响任何功能。</div>'+
         '<img src="reward.webp" alt="赞赏码" style="width:100%;max-width:230px;display:block;margin:0 auto;border-radius:14px"><div class="hint center" style="margin-top:8px">微信扫码 · 感谢支持</div></details></div>'+
@@ -935,6 +993,19 @@ function render(){
     return;
   }
 
+  if(phase==="errors"){
+    $("ttl").textContent="错误日志"; $("right").textContent=(S.errors.length||0)+" 条";
+    if(!S.errors.length){ v.innerHTML='<div class="hero center"><div class="big">没有错误记录</div><div class="sub">运行中如果出现异常，会自动记在这里</div></div>'; return; }
+    v.innerHTML='<div class="hint" style="margin-bottom:10px">反馈问题时把这部分内容发给我，能快速定位。日志只存在本机，不会上传。</div>'+
+      S.errors.slice().reverse().map(function(e){
+        return '<div class="sec" style="padding:12px"><div class="hint">'+esc(new Date(e.t).toLocaleString())+' · '+esc(e.v)+' · '+esc(e.p)+'</div>'+
+          '<div style="margin-top:6px;font-size:13px;word-break:break-all">'+esc(e.m)+'</div>'+
+          (e.s?'<div class="hint" style="margin-top:6px;word-break:break-all;white-space:pre-wrap">'+esc(e.s)+'</div>':"")+'</div>';
+      }).join("")+
+      '<div class="btns"><button class="btn ghost" data-act="copyerr">复制全部</button><button class="btn bad" data-act="clearerr">清空</button></div>';
+    return;
+  }
+
   if(phase==="data"){
     $("ttl").textContent="备份 / 恢复";
     var dump=JSON.stringify(S);
@@ -1003,6 +1074,12 @@ document.addEventListener("click", function(ev){
   if(act==="essay"){ ui.essay=parseInt(el.getAttribute("data-k"),10); nav("essay"); return; }
   if(act==="words"){ nav("words"); return; }
   if(act==="lookup"){ openWordSheet(el.getAttribute("data-w"), ""); return; }
+  if(act==="openupd"){ try{ window.open(UPD.url||"https://github.com/bhxcvb/yuhuan/releases","_blank"); }catch(e){ toast("请到 Releases 页面下载"); } return; }
+  if(act==="toggleupd"){ S.settings.checkUpdate=!S.settings.checkUpdate; save(); render(); if(S.settings.checkUpdate) checkUpdate(true); return; }
+  if(act==="errors"){ nav("errors"); return; }
+  if(act==="clearerr"){ askConfirm("清空错误日志","只清空日志，不影响学习数据。","清空",function(){ S.errors=[]; save(); render(); }); return; }
+  if(act==="copyerr"){ var t=errorDump(); if(!t){ toast("没有错误记录"); return; }
+    try{ var ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); toast("已复制"); }catch(e){ toast("复制失败"); } return; }
   if(act==="delword"){ var k=parseInt(el.getAttribute("data-k"),10); if(S.words[k]){ S.words.splice(k,1); save(); render(); } return; }
   if(act==="report"){ nav("report"); return; }
   if(act==="home"){ nav("home"); return; }
@@ -1095,6 +1172,7 @@ loadStore();
 try{ history.replaceState({phase:phase},""); }catch(e){}
 if(!S.seenGuide){ S.seenGuide=true; save(); phase="guide"; }
 render();
+setTimeout(function(){ checkUpdate(false); }, 1500);
 </script>
 </body>
 </html>
