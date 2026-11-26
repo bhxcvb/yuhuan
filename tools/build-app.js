@@ -65,12 +65,12 @@ function extractFromHtml(html) {
   const ctx = vm.createContext(sandbox);
   try { vm.runInContext(m[1], ctx, { timeout: 30000 }); }
   catch (e) { fail('解析 web/index.html 数据失败：' + e.message); }
-  const need = ['QS', 'TR', 'NOS', 'POINTS', 'KB', 'REL', 'CLOZE', 'WRITING', 'DICT_RAW'];
+  const need = ['QS', 'TR', 'NOS', 'POINTS', 'KB', 'REL', 'CLOZE', 'WRITING', 'DICT_RAW', 'EX_RAW'];
   for (const k of need) if (typeof ctx[k] === 'undefined') fail('web/index.html 缺少数据变量 ' + k);
   return {
     QS: ctx.QS, TR: ctx.TR, NOS: ctx.NOS, POINTS: ctx.POINTS, KB: ctx.KB,
     REL: ctx.REL, CLOZE: ctx.CLOZE, WRITING: ctx.WRITING,
-    DICT_RAW: ctx.DICT_RAW, VERSION: ctx.VERSION
+    DICT_RAW: ctx.DICT_RAW, EX_RAW: ctx.EX_RAW, VERSION: ctx.VERSION
   };
 }
 
@@ -92,14 +92,15 @@ function build() {
   const current = fs.readFileSync(WEB_OUT, 'utf8');
   const curData = extractFromHtml(current);
 
-  let data, dictRaw, rel;
+  let data, dictRaw, exRaw, rel;
   if (dataIdx >= 0 && args[dataIdx + 1]) {
     const d = readJson(args[dataIdx + 1]);
     data = { QS: d.QS, TR: d.TR, NOS: d.NOS, POINTS: d.POINTS, KB: d.KB, CLOZE: d.CLOZE, WRITING: d.WRITING };
     rel = d.REL || (dictIdx < 0 ? curData.REL : null);
     dictRaw = JSON.stringify(dictIdx >= 0 && args[dictIdx + 1] ? readJson(args[dictIdx + 1]) : JSON.parse(curData.DICT_RAW));
+    exRaw = curData.EX_RAW;
   } else {
-    data = curData; dictRaw = curData.DICT_RAW; rel = curData.REL;
+    data = curData; dictRaw = curData.DICT_RAW; exRaw = curData.EX_RAW; rel = curData.REL;
   }
   const tr = {}, nos = {};
   for (const k in data.TR) tr[String(k)] = data.TR[k];
@@ -108,7 +109,7 @@ function build() {
   const map = {
     '__QS__': data.QS, '__TR__': tr, '__NOS__': nos, '__POINTS__': data.POINTS,
     '__KB__': data.KB, '__CLOZE__': data.CLOZE, '__WRITING__': data.WRITING,
-    '__REL__': rel, '__DICT__': dictRaw
+    '__REL__': rel, '__DICT__': dictRaw, '__EX__': exRaw
   };
   for (const k of Object.keys(map)) {
     if (tpl.indexOf(k) < 0) fail('模板缺占位符 ' + k);

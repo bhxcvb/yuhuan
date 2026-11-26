@@ -9,7 +9,7 @@
 ## 一、Android（推荐 APK）
 
 1. 手机浏览器打开 [Releases 页面](https://github.com/bhxcvb/yuhuan/releases)
-2. 在 [Releases](https://github.com/bhxcvb/yuhuan/releases/latest) 下载最新的 `yuhuan-v*.apk`（约 1.9 MB）
+2. 在 [Releases](https://github.com/bhxcvb/yuhuan/releases/latest) 下载最新的 `yuhuan-v*.apk`（约 3.0 MB）
 3. 点开安装包，首次会提示「未知来源」→ 允许来自此来源
 4. 安装完成，桌面出现「语欢」图标
 

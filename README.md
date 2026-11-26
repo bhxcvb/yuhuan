@@ -4,7 +4,7 @@
 
 # 语欢 · 高考英语语法刷题
 
-**单词背了不少，语法题还是一错一大片？** 语欢就是为这种情况做的：14 套高考真题拆成 1460 道题，按 51 个语法点组织，每道题都有「考点 + 依据 + 排除」的解析，阅读配全文译文。不背单词，只练语法。
+**单词背了不少，语法题还是一错一大片？** 语欢就是为这种情况做的：14 套高考真题拆成 1460 道题，按 51 个语法点组织；每道题都有「考点 + 依据 + 排除」的结构化解析，阅读与七选五配全文译文。不背单词，只练语法。
 
 [![License](https://img.shields.io/badge/license-MIT-5b9dff?style=flat-square)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/bhxcvb/yuhuan?style=flat-square&color=8f7bff&label=release)](https://github.com/bhxcvb/yuhuan/releases/latest)
@@ -15,7 +15,7 @@
 
 ### [▶️ 在线体验（不用下载）](https://bhxcvb.github.io/yuhuan/web/)
 
-[▶️ 15 秒宣传片](https://github.com/bhxcvb/yuhuan/releases/latest/download/yuhuan-promo-15s.mp4) · [📦 下载 APK](https://github.com/bhxcvb/yuhuan/releases) · [📖 安装教程](docs/INSTALL.md) · [🏠 官网](https://bhxcvb.github.io/yuhuan/) · [📝 更新日志](CHANGELOG.md) · [🐛 反馈](https://github.com/bhxcvb/yuhuan/issues)
+[📦 下载 APK](https://github.com/bhxcvb/yuhuan/releases/latest) · [📖 安装教程](docs/INSTALL.md) · [🏠 官网](https://bhxcvb.github.io/yuhuan/) · [📝 更新日志](CHANGELOG.md) · [🐛 反馈](https://github.com/bhxcvb/yuhuan/issues)
 
 **离线优先**：做题、复习、查词全部不需要网络；无账号、无广告、无埋点。Android 版只申请「网络」权限用于检查更新（可在设置关闭），朗读用系统 TTS。
 
@@ -38,60 +38,80 @@
 ## 1. Overview
 **这是什么**
 
-单词背得再多，语法题该错还是错。语欢练的是**语法本身**：
+市面上的刷题 App 大多是「题库 + 对答案」。语欢多做三件事：
 
-- **按知识点刷**：51 个语法点各自成池，练「一般现在时」就只出一般现在时的题
-- **按题型刷**：阅读、七选五、语法填空、短文改错
-- **按试卷刷**：14 套高考真题，按原题号顺序，整篇阅读一次做完
-- **每道题都有解析**：考点 + 原文依据 + 干扰项为什么错；阅读 / 七选五配全文译文
+1. **知道你不会什么**：按知识点统计正确率、错因和复习表现，给出五级诊断（未练 / 样本不足 / 明显薄弱 / 待巩固 / 稳定掌握）
+2. **知道该练什么**：每日计划按「复习 → 补薄弱 → 新题」动态配比；薄弱点只出变式题，不重复刚做过的原题
+3. **知道为什么错**：每题给出考点、判断依据、解题步骤和逐项排除；易混点只在和本题相关时展示
 
 > 目标：**别背规则，做题 → 暴露薄弱点 → 只补不会的。**
->
-> 完全离线：不联网、不申请任何权限、无账号、无广告。数据只存在本机。
 
 ## 2. Features
 **功能**
 
+### 学习闭环
+
+| | 功能 | 说明 |
+|---|---|---|
+| 📅 | **动态每日计划** | 按到期复习、薄弱点、新题自动配比；考试临近自动降低新题比例；完成可「加练」 |
+| 🔁 | **间隔复习** | 1/2/4/7/15/30/60 天；答错当天重练、连错两次推到次日；逾期和低正确率自动缩短间隔 |
+| 🧠 | **学习诊断** | 51 个知识点五级判定；按错因（概念不清 / 粗心 / 没看懂句子）给不同建议 |
+| 🎯 | **薄弱点变式训练** | 只出同知识点的其他题；原题推迟到次日，避免机械重复 |
+| 📊 | **掌握度** | 平滑正确率 50% + 覆盖度 20% + 连续复习 30%；小样本自动封顶，答对一次不算掌握 |
+| 📈 | **学习报告** | 7/30 天切换，正确率趋势、每日题量、新增掌握题、薄弱点、下一阶段建议 |
+| 🏆 | **成就与连续天数** | 8 个成就徽章，连续学习记录 |
+
+### 题目与解析
+
 | | 功能 | 说明 |
 |---|---|---|
 | 📚 | **题库 1460 题** | 14 套真题 420 题（阅读 210 / 七选五 70 / 语法填空 140）+ 分知识点题 1040 题 |
-| 🎯 | **分知识点练** | 51 个语法点各自成池，答对过的不再重复 |
-| 🔁 | **间隔复习** | 答对按 1/1/2/4/7/15/30 天安排，答错当天重练、连错两次推到次日；正确率低的题自动缩短间隔；到期的题自动进今日计划 |
-| 📅 | **今日计划** | 先复习到期题，再出新题；按每天题量与考试日期安排 |
-| 🧠 | **错因标记** | 答错标「概念不清 / 粗心 / 没看懂句子」，错题本按原因筛选，并影响复习间隔 |
-| 📰 | **整篇作答** | 阅读、七选五整篇一次做完，交卷后才出答案、解析与译文；不进单题流程 |
-| 🔎 | **真题索引** | 每个知识点显示「真题里考过 N 次」，点进去看原题 |
-| ⏱ | **整卷计时** | 按试卷 45 分钟、模拟考 20 分钟、限时阅读 6 分钟，自动交卷并折算 150 分制 |
-| 📖 | **语法知识库** | 51 篇：规则、例句（英文+译文）、常见错误、易混陷阱 |
+| 📰 | **整篇作答** | 阅读、七选五整篇一次做完，交卷后才公布答案、解析与译文 |
+| 🧩 | **结构化解析** | 解题步骤 → 解析 → 选项排除表（正确项与错项各自说明） |
 | 🀄 | **全文译文** | 阅读 / 七选五全文译文，交卷后公布 |
+| ⚠️ | **易混点匹配** | 只展示与本题相关的内容；不相关时折叠并标注「本知识点的其他易混点」 |
+| ⏱ | **计时模式** | 整卷 45 分钟、模拟考 20 分钟、限时阅读 6 分钟，自动交卷并折算 150 分 |
 | ✍️ | **写作范文** | 14 篇高分范文：英文 + 译文 + 要点 + 提示 |
-| 🔤 | **首页查词** | 输入英文联想单词，**输入中文反查英文**（如「网络」→ network、「因为」→ because of） |
-| 📖 | **生词本** | 长按任意英文单词弹卡片，一键收录；内置 27,970 词离线词典 |
-| 📊 | **学习数据** | 周报、模块掌握度条形图、8 个成就徽章、高考倒计时 |
-| 🌗 | **主题** | 日间 / 夜间 + 6 种主题色 |
-| 💾 | **备份** | 一键复制/保存 JSON，换设备导入；导入前自动备份、可撤销；另有 IndexedDB 自动快照 |
-| 🗂 | **多题库** | 内置与自定义题库的学习进度、错题、复习队列各自独立，切换不互相覆盖 |
-| 🔄 | **更新检查** | 打开时静默检查新版本（默认开启，可在设置关闭），发现新版本首页提示 |
-| 🧾 | **错误日志** | 本地记录异常，可一键复制用于反馈 |
+
+### 词汇
+
+| | 功能 | 说明 |
+|---|---|---|
+| 🔤 | **查词** | 英文前缀 / 包含 / 中文反查（如「网络」→ network） |
+| 📖 | **词汇拓展** | 近义词、反义词、英文释义、相关词组；近义词按词性对齐，避免词义混用 |
+| 🔊 | **发音** | 英式 / 美式切换（Web 用系统语音，Android 用原生 TTS） |
+| 📝 | **单词复习** | 生词可加入间隔复习，卡片式「认识 / 模糊 / 不认识」 |
+| ⭐ | **生词本** | 音标 + 释义 + 例句 + 近义词；变形词自动归并到原形，不重复收藏 |
+
+### 数据与安全
+
+| | 功能 | 说明 |
+|---|---|---|
+| 💾 | **备份** | 复制文本 / 保存文件 / 从文件导入；导入前自动备份、可撤销 |
+| 🗄 | **自动快照** | 每次保存写入 IndexedDB，保留上一份快照，可回滚 |
+| 🧬 | **版本迁移** | schema 迁移；旧版本数据自动升级，进度不丢 |
+| 📦 | **题库可替换** | 导入题库 JSON，各题库进度互相独立 |
+| 🧾 | **错误日志** | 本地记录异常，一键复制用于反馈 |
+| 🔄 | **更新检查** | 打开时静默查询 GitHub 版本，可在设置关闭 |
 
 ## 3. Screenshots
 **界面**
 
 <table>
 <tr>
-<td align="center"><img src="screenshots/home.png" width="230"><br><sub>首页 · 今日计划与查词</sub></td>
+<td align="center"><img src="screenshots/home.png" width="230"><br><sub>首页 · 学习计划与查词</sub></td>
 <td align="center"><img src="screenshots/quiz.png" width="230"><br><sub>答题</sub></td>
-<td align="center"><img src="screenshots/answer.png" width="230"><br><sub>答后解析与译文</sub></td>
+<td align="center"><img src="screenshots/answer.png" width="230"><br><sub>解题步骤 + 选项排除</sub></td>
 </tr>
 <tr>
 <td align="center"><img src="screenshots/passage-answer.png" width="230"><br><sub>整篇作答 · 交卷后展示</sub></td>
-<td align="center"><img src="screenshots/detail.png" width="230"><br><sub>知识点详情 · 知识库 + 真题索引</sub></td>
+<td align="center"><img src="screenshots/detail.png" width="230"><br><sub>知识点 · 规则与真题索引</sub></td>
 <td align="center"><img src="screenshots/mine.png" width="230"><br><sub>我的 · 掌握度与成就</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="screenshots/search.png" width="230"><br><sub>查词联想</sub></td>
-<td align="center"><img src="screenshots/writing.png" width="230"><br><sub>写作范文</sub></td>
-<td align="center"><img src="screenshots/grammar.png" width="230"><br><sub>语法总览</sub></td>
+<td align="center"><img src="screenshots/stats.png" width="230"><br><sub>学习分析</sub></td>
+<td align="center"><img src="screenshots/wronglist.png" width="230"><br><sub>错题本 · 按错因变式</sub></td>
+<td align="center"><img src="screenshots/words.png" width="230"><br><sub>生词本 · 单词复习</sub></td>
 </tr>
 </table>
 
@@ -114,15 +134,10 @@
 
 | 平台 | 怎么装 | 体积 | 需要什么 |
 |---|---|---|---|
-| **Android** | 在 [最新 Release](https://github.com/bhxcvb/yuhuan/releases/latest) 下载 `yuhuan-v*.apk`，允许未知来源安装 | 1.9 MB | 无 |
+| **Android** | 在 [最新 Release](https://github.com/bhxcvb/yuhuan/releases/latest) 下载 `yuhuan-v*.apk`，允许未知来源安装 | 3.0 MB | 无 |
 | **iPhone / iPad** | Safari 打开[网页版](https://bhxcvb.github.io/yuhuan/web/) → 分享 → **添加到主屏幕** | 0（浏览器缓存） | 无 |
-| **Windows（推荐）** | Edge/Chrome 打开网页版 → 地址栏 **安装** 图标 | 0 | 系统自带浏览器 |
-| **Windows（独立包）** | 按 [desktop/README.md](desktop/README.md) 用 Electron 自行打包（`npm i && npx electron-packager`） | ~270 MB | Node.js |
-| **macOS** | Chrome/Edge 打开网页版 → 安装 | 0 | 无 |
+| **Windows / macOS** | Edge / Chrome 打开网页版 → 地址栏安装图标 | 0 | 系统浏览器 |
 | **源码运行** | `python3 -m http.server` 后打开 `web/` | — | Python |
-
-> iPhone 和 Windows 的「安装」都是 PWA：装完有独立图标、全屏运行、断网可用，和原生 App 体验一致。
-> **iOS 原生 App** 需要 Mac + Xcode + 苹果开发者账号（99 美元/年），本仓库提供[工程源码](ios/README.md)与 Codemagic 配置，但没有 Mac 无法产出 .ipa。
 
 详细步骤（含常见问题、数据迁移）见 **[安装教程](docs/INSTALL.md)**。
 
@@ -130,134 +145,94 @@
 **本地开发**
 
 ```bash
-git clone https://github.com/bhxcvb/yuhuan.git
-cd yuhuan
-python3 -m http.server 8080     # 打开 http://127.0.0.1:8080/web/
+# 1. 改界面/逻辑：编辑 src/app-template.html
+# 2. 重建单文件产物（数据从现有 web/index.html 自举）
+node tools/build-app.js
+
+# 只校验产物和模板是否一致（CI 用）
+node tools/build-app.js --check
 ```
 
-**打包 APK**：需要 JDK、`aapt`、`zipalign`、`apksigner` 和 [R8](https://r8.googlesource.com/r8)（提供 `d8`）
+重新生成 APK（需要 JDK、Android SDK build-tools、aapt、zipalign、apksigner）：
 
 ```bash
-ANDROID_JAR=/path/to/android.jar R8_JAR=/path/to/r8.jar ./build/build-apk.sh
+bash build_release.sh 6.33      # 版本号唯一来源，输出 APK 与 web 版
 ```
-
-`app/MainActivity.java` 只做三件事：WebView 加载 `assets/index.html`、返回键交给页面历史、把系统 `TextToSpeech` 暴露给网页。
 
 ## 7. Structure
 **目录结构**
 
 ```
-index.html            官网落地页
-web/index.html        完整应用（构建产物，题库内联，单文件，约 6.1 MB）
-src/app-template.html 可读源码模板（界面 + 逻辑，改代码改这里）
-tools/build-app.js    构建脚本：模板 + 数据 → web/index.html
-desktop/              Electron 桌面外壳
-ios/                  iOS WKWebView 外壳
-app/                  Android 外壳（MainActivity + Manifest + 图标）
-build/build-apk.sh    一键打包 APK 脚本
-screenshots/          界面截图
-docs/                 横幅、图标、二维码、审计与人工审核记录
-docs/REVIEW-QUEUE.md  人工待审核题目清单
-docs/DATA-REVIEW-2026-11.md  译文/解析抽查与真题答案核验状态
-.github/workflows/    CI：推送时校验脚本语法与题库结构
+src/app-template.html   界面与逻辑（带数据占位符）
+tools/build-app.js      模板 + 数据 → web/index.html
+tools/validate-data.js  题库结构校验
+apk/                    Android 壳工程与打包脚本
+web/                    构建产物（GitHub Pages 直接可用）
+tests/                  基础回归 / 端到端 / 离线测试
+docs/                   架构、安装、平台清单、头图
 ```
 
-## 8. Data format
+## 8. Data Format
 **数据格式**
 
-题库内联在 `web/index.html`，几个全局变量：
-
 ```js
-QS[i] = [分类, 题干, [选项...], 正确答案下标, 解析, 来源?, 原文?, 知识点?]
+QS[i] = [语法分类, 题干, [选项...], 答案下标, 解析, 来源?, 原文?, 知识点?]
 TR[i] = { q: "题干译文", o: ["选项译文"...], p: "原文译文" }
-NOS[i] = 题号（真题才有）
+NOS[i] = 原题题号（真题才有）
 KB[知识点] = { summary, rules[], examples[], mistakes[], trap }
-DICT[word] = { t: "中文释义", p: "/音标/" }
+DICT[word] = { t: "中文释义", p: "/音标/", e: "英文例句", s: [近义词...] }
+EX[word] = { de: "英文释义", pos, syn: [近义词], a: [反义词], ph: [相关词组] }
 ```
 
-想换成自己的题库，改这些变量即可，界面逻辑不用动。也可以在应用里「我的 → 备份 / 恢复 → 题库 → 导入题库」直接导入 JSON（格式：`{"QS":[...],"TR":{...},"NOS":{...}}`），导入前会自动备份、可撤销。
-
-**数据口径（审计说明）**
-
-- 译文 1265 条：1040 道知识点/模块题中的 985 道 + 280 道篇章题；#0–#194（45 道模块基础题 / 140 道语法填空 / 10 道短文改错）没有选项译文，属设计取舍。
-- #0–#44 这 45 道模块基础题没有 `来源`/`知识点` 字段，会出现在随机/模块/模拟考中，但不参与知识点掌握度统计。
-- 部分双空题选项写作 `"the; /"` 形式，表示两个空格的答案；界面会有说明。
-- 2022 年后的真题官方未公开答案，由项目自行解答，欢迎通过「这题有问题」反馈。
+导入自定义题库：`我的 → 备份/恢复 → 题库 → 导入题库`，格式 `{"QS":[…],"TR":{…},"NOS":{…}}`；导入前自动备份，可撤销。
 
 ## 9. Tests
 **测试**
 
 ```bash
 node tools/extract-data.js /tmp/data.json && node tools/validate-data.js /tmp/data.json   # 题库结构校验
-node tools/build-app.js --check    # 校验产物与模板一致（CI 会跑）
-node tests/basic.test.js          # 253 项基础回归（无依赖）
+node tests/basic.test.js          # 344 项基础回归（无依赖）
 python3 tests/e2e.py              # 21 项端到端（需 Playwright）
-python3 tests/e2e_ext.py          # 15 项离线 / 数据完整性 / 备份恢复（需 Playwright）
+python3 tests/e2e_ext.py          # 20 项离线 / 数据完整性 / 备份恢复
 ```
 
-CI 每次 push 跑：题库结构校验（答案索引、选项、解析、知识点归属、重复题）、`基础回归`、`端到端`。细节见 [tests/README.md](tests/README.md)。
+CI 每次 push 跑：题库校验、基础回归、端到端。细节见 [tests/README.md](tests/README.md)。
 
-**性能**：单文件约 6.1 MB，首屏 `DOMContentLoaded` 约 0.45 s（词典懒加载，首次查词再解析）；无 ES6+ 语法，兼容旧版 WebView。
+**性能**：单文件约 9.8 MB，首屏 `DOMContentLoaded` 约 0.5 s（词典与词汇拓展懒加载）；无 ES6+ 语法，兼容旧内核。
 
 ## 10. FAQ
 **常见问题**
 
-<details>
-<summary><b>进度会不会丢？</b></summary>
+**Q：需要联网吗？**
+做题、复习、查词都不需要。只有「检查更新」会访问 GitHub（默认开启，可关闭）。
 
-进度存在本机 localStorage，覆盖安装保留。「我的 → 备份 / 恢复」可导出 JSON 迁移到别的设备。导入题库或切换题库时，各题库的进度分别保存，不会互相覆盖；旧版本数据会自动迁移。
-</details>
+**Q：数据存在哪？**
+只存本机：localStorage 保存进度，IndexedDB 保存自动快照。不上传任何数据。
 
-<details>
-<summary><b>为什么朗读没声音？</b></summary>
+**Q：换手机怎么办？**
+我的 → 备份/恢复 → 复制或保存文件 → 新设备粘贴/导入。导入前会自动备份当前数据。
 
-需要系统有「文字转语音」引擎。APK 版调用系统 TTS；网页版用浏览器的语音合成，若系统没有英文语音会提示「此环境不支持朗读」，去系统设置安装一个 TTS 引擎即可。
-</details>
+**Q：为什么答错后这道题又出现了？**
+同一题最多重做 1 次，帮你当场巩固；之后进错题本，隔天用变式题复习。
 
-<details>
-<summary><b>能离线用吗？</b></summary>
+**Q：为什么只有部分词有反义词/搭配？**
+数据来自离线词库与题库语料，没有可靠数据时页面会明确写「暂无可靠数据」，不会编造。
 
-可以，整个应用是单个 HTML 文件，无任何网络请求。
-</details>
+**Q：iOS 原生 App？**
+需要 Mac + Xcode + 开发者账号，仓库里有工程骨架（`ios/`），但发不了现成 ipa；iPhone 建议直接用 PWA。
 
-<details>
-<summary><b>答案准确吗？</b></summary>
-
-2020–2021、2026 二卷对照官方答案卷；2022 年之后官方答案未公开，答案由本项目自行解答并交叉校验。
-</details>
+**Q：APK 签名指纹？**
+校验下载包（`apksigner verify --print-certs`）：
+`SHA-256: 44:40:36:B3:58:8B:D0:17:81:47:B9:65:13:E0:E9:1A:9C:A6:B9:F4:08:7A:F7:46:40:C2:B5:79:11:DF:64:14`。同指纹才能覆盖安装并保留进度。
 
 ## 11. Support
 **支持作者**
 
-如果语欢帮到了你，欢迎扫码支持（完全自愿，不影响任何功能）：
+如果语欢帮到了你，可以扫码支持，完全自愿；也欢迎提 Issue 反馈题目或建议。
 
-<img src="reward.webp" width="200" alt="赞赏码">
-
-也欢迎点个 ⭐️ Star，或提 [Issue](https://github.com/bhxcvb/yuhuan/issues) 反馈问题、推荐题目。
+<img src="reward.webp" width="180">
 
 ## 12. License
 **许可**
 
-代码以 MIT 发布；题目内容版权归原命题机构，仅用于学习研究，权利人提出异议会立即移除。
-
----
-
-<div align="center"><sub>语欢 · 与语言相欢 · Made with ❤️ for Gaokao</sub></div>
-
-## 13. Security
-**安全**
-
-- 权限：Android 只申请「网络」（检查更新）与「TTS」（朗读），不读通讯录、相册、位置
-- 数据：全部存在本机（localStorage + IndexedDB 备份），无账号、无埋点、无服务器
-- 网络：唯一请求是查询 GitHub 最新版本号，可在设置关闭
-- **发现安全问题？** 请不要公开 Issue：用 GitHub 的 [私密漏洞报告](https://github.com/bhxcvb/yuhuan/security/advisories/new)，或发 Issue 只说「有安全问题，求联系方式」
-
-### APK 签名指纹
-
-校验下载的 APK 是否被篡改（`apksigner verify --print-certs yuhuan.apk`）：
-
-```
-SHA-256: 44:40:36:B3:58:8B:D0:17:81:47:B9:65:13:E0:E9:1A:9C:A6:B9:F4:08:7A:F7:46:40:C2:B5:79:11:DF:64:14
-```
-
-同一指纹的包才能覆盖安装并保留进度。
+[MIT](LICENSE)。题库与真题版权归原命题机构，本项目仅供学习研究。

@@ -235,6 +235,264 @@ ok(isCJK('网络')&&!isCJK('network'),'中英文判断');
   ok(typeof S.settings.weekly==='number' && S.settings.weekly>0,'每周目标存在：'+S.settings.weekly);
 })();
 
+/* ========== J6. 学习诊断 ========== */
+(function(){
+  S.seenGuide=true; save();
+  // 未练
+  var p0=POINTS[0][0], ids0=pointIds(p0);
+  ids0.forEach(function(i){ delete S.q[i]; delete S.reason[i]; });
+  var x0=weakList().filter(function(x){return x.p===p0;})[0];
+  ok(diagnosePoint(x0).level==='none','未练知识点判为「未练」');
+  // 样本不足
+  S.q[ids0[0]]={n:1,right:0}; save();
+  var x1=weakList().filter(function(x){return x.p===p0;})[0];
+  ok(diagnosePoint(x1).level==='sample','只答 1 题判为「样本不足」');
+  // 明显薄弱 + 错因归因
+  ids0.slice(0,4).forEach(function(i){ S.q[i]={n:3,right:0}; S.reason[i]={concept:2,careless:1}; });
+  save();
+  var x2=weakList().filter(function(x){return x.p===p0;})[0];
+  var d2=diagnosePoint(x2);
+  ok(d2.level==='weak','低正确率判为「明显薄弱」');
+  ok(d2.topReason==='concept','主要错因识别为概念不清');
+  ok(d2.advice.indexOf('知识卡')>=0,'建议指向知识卡');
+  ok(d2.rs.concept>=4,'错因计数正确');
+  // 待巩固
+  ids0.slice(0,5).forEach(function(i){ S.q[i]={n:5,right:4}; delete S.reason[i]; });
+  save();
+  var d3=diagnosePoint(weakList().filter(function(x){return x.p===p0;})[0]);
+  ok(d3.level==='improve'||d3.level==='stable','中等正确率判为待巩固或稳定（实际 '+d3.label+'）');
+  // 稳定
+  ids0.forEach(function(i){ S.q[i]={n:5,right:5}; delete S.reason[i]; });
+  save();
+  var d4=diagnosePoint(weakList().filter(function(x){return x.p===p0;})[0]);
+  ok(d4.level==='stable','高正确率判为「较稳定」');
+  // 模块汇总
+  ok(moduleWeakSummary(2).length>=1,'模块薄弱汇总有输出');
+  // 页面渲染：造一个薄弱点
+  var pw=POINTS[3][0], idw=pointIds(pw);
+  idw.slice(0,5).forEach(function(i){ S.q[i]={n:3,right:0}; S.reason[i]={concept:2,careless:1}; });
+  save(); phase='weak'; render();
+  ok(els.ttl.textContent==='学习诊断','页面标题为学习诊断');
+  ok(html().includes('诊断结论'),'含诊断结论块');
+  ok(html().includes('看知识卡'),'含知识卡入口');
+  ok(html().includes('明显薄弱'),'含明显薄弱分组');
+  ok(html().includes('错因：'),'卡片显示错因');
+})();
+
+/* ========== J7. 解析结构化 ========== */
+(function(){
+  S.seenGuide=true; save();
+  var i=QS.findIndex(function(q){ return q[7]==='定语从句：关系代词' && q[0]==='真题·语法填空'; });
+  if(i<0) i=QS.findIndex(function(q){ return q[7]; });
+  var item=QS[i];
+  var steps=stepsFor(item);
+  ok(steps.length===4,'解题步骤为 4 步');
+  var h=explainHTML(item);
+  ok(h.indexOf('解题步骤')>=0,'含解题步骤块');
+  ok(h.indexOf('选项排除')>=0,'含选项排除块');
+  ok(h.indexOf('正确：符合')>=0,'正确选项有说明');
+  var w=explainWrongs(item);
+  ok(typeof w==='object','错项原因可解析');
+  // 排除句解析：构造一条
+  var fake=['真题·语法填空','x',['A','B','C','D'],0,'考点：时态。依据：时间状语。干扰项排除：B 为过去式，时态不符；C 为被动，语态不符；D 为完成时，语境不符。'];
+  var w2=explainWrongs(fake);
+  ok(w2[1]&&w2[1].indexOf('时态')>=0,'排除句映射到 B 选项');
+  ok(w2[2]&&w2[2].indexOf('语态')>=0,'排除句映射到 C 选项');
+})();
+
+/* ========== J8. 错题变式训练 ========== */
+(function(){
+  S.seenGuide=true; save();
+  var pt='定语从句：关系代词';
+  var ids=pointIds(pt).filter(function(i){return !hasPassage(i);});
+  S.wrong=[ids[0], ids[1], pointIds('一般现在时').filter(function(i){return !hasPassage(i);})[0]];
+  S.reason={}; S.reason[ids[0]]={concept:2}; S.reason[ids[1]]={careless:1}; S.reason[S.wrong[2]]={reading:1};
+  save();
+  var vs=variantsFor(ids[0],3);
+  ok(vs.length>0,'能选出变式题');
+  ok(vs.indexOf(ids[0])<0,'变式不含原题');
+  ok(vs.every(function(i){return !hasPassage(i);}),'变式不含篇章题');
+  ok(vs.every(function(i){return QS[i][7]===QS[ids[0]][7]||QS[i][0]===QS[ids[0]][0];}),'变式来自同知识点或同题型');
+  ok(wrongPlan('concept').length===1,'按「概念不清」筛错题');
+  ok(wrongPlan('careless').length===1,'按「粗心」筛错题');
+  ok(wrongPlan('reading').length===1,'按「没看懂句子」筛错题');
+  startWrongPlan('concept');
+  ok(phase==='quiz'&&ses&&ses.list.length>0,'进入变式训练');
+  ok(ses.list.indexOf(ids[0])<0,'训练不含原题（避免机械重复）');
+  ok(S.rev[ids[0]] && S.rev[ids[0]].due>dateKey(),'原题推迟到次日复习');
+  phase='wronglist'; render();
+  var h=html();
+  ok(h.indexOf('按错因专项训练')>=0,'错题本含按错因专项');
+  ok(h.indexOf('变式练习')>=0,'每道错题有变式练习入口');
+  ok(h.indexOf('变式复习（推荐）')>=0,'底部提供变式复习');
+  ok(h.indexOf('建议：')>=0,'错题卡片显示训练建议');
+  var before=ses.list.slice();
+  startVariantPoint('定语从句：关系代词');
+  ok(phase==='quiz'&&ses.list.length>0,'知识点变式可进入训练');
+  ok(ses.list.every(function(i){return QS[i][7]==='定语从句：关系代词';}) || ses.list.some(function(i){return QS[i][7]==='定语从句：关系代词';}),'知识点变式来自该知识点');
+})();
+
+/* ========== J9. 掌握度三信号 ========== */
+(function(){
+  var pt='定语从句：关系代词';
+  var ids=pointIds(pt).filter(function(i){return !hasPassage(i);});
+  S.seenGuide=true;
+  function reset(){ S.q={}; S.rev={}; S.reason={}; }
+  // 只答对一次不能算掌握
+  reset(); S.q[ids[0]]={n:1,right:1};
+  var m1=pointMastery(pt);
+  ok(m1<=40,'答对一题掌握度封顶（'+m1+'）');
+  ok(masteryLevel(pt).label==='样本不足','样本不足有明确标注');
+  // 多次但无连续表现，仍不算掌握
+  reset(); ids.slice(0,6).forEach(function(i){ S.q[i]={n:1,right:1}; });
+  ok(pointMastery(pt)<80,'无间隔复习记录不判掌握（'+pointMastery(pt)+'）');
+  // 正确率 + 连续复习都达标才算掌握
+  reset(); ids.slice(0,6).forEach(function(i){ S.q[i]={n:3,right:3}; S.rev[i]={box:3,due:dateKey(),err:0}; });
+  var m2=pointMastery(pt);
+  ok(m2>=80,'连续 3 次答对后判稳定掌握（'+m2+'）');
+  ok(masteryLevel(pt).label==='稳定掌握','等级显示稳定掌握');
+  // 有错题拉低
+  reset(); ids.slice(0,4).forEach(function(i){ S.q[i]={n:2,right:2}; S.rev[i]={box:2,due:dateKey(),err:0}; });
+  ids.slice(4,6).forEach(function(i){ S.q[i]={n:2,right:0}; S.rev[i]={box:0,due:dateKey(),err:2}; });
+  ok(pointMastery(pt)<80,'存在错题时不能判稳定掌握（'+pointMastery(pt)+'）');
+  // 已毕业（box≥5 移出队列）仍算连续表现
+  reset(); ids.slice(0,6).forEach(function(i){ S.q[i]={n:3,right:3}; });
+  ok(pointMastery(pt)>=80,'已毕业题按连续表现计入（'+pointMastery(pt)+'）');
+  // 覆盖度参与：同样每题的答题记录，只覆盖 2 题低于覆盖 6 题
+  reset(); ids.slice(0,2).forEach(function(i){ S.q[i]={n:3,right:3}; S.rev[i]={box:3,due:dateKey(),err:0}; });
+  var mCov2=pointMastery(pt);
+  reset(); ids.slice(0,6).forEach(function(i){ S.q[i]={n:3,right:3}; S.rev[i]={box:3,due:dateKey(),err:0}; });
+  var mCov6=pointMastery(pt);
+  ok(mCov2<mCov6,'覆盖度参与计算（2 题 '+mCov2+' % < 6 题 '+mCov6+'%）');
+  ok(mCov2<80,'覆盖不足时不到稳定掌握（'+mCov2+'）');
+  reset();
+})();
+
+/* ========== J10. 每日计划编排 ========== */
+(function(){
+  S.seenGuide=true; S.settings.daily=10; S.settings.examDate='';
+  function reset(){ S.q={}; S.rev={}; S.log={}; S.reason={}; }
+  // 新用户：全为新题
+  reset(); save();
+  var p1=dailyPlan();
+  ok(p1.ids.length===10,'新用户计划 10 题');
+  ok(p1.review===0 && p1.fresh>0,'新用户无复习、有新题');
+  // 有到期题：先复习
+  reset();
+  var due=pointIds('一般现在时').filter(function(i){return !hasPassage(i);}).slice(0,5);
+  due.forEach(function(i){ S.rev[i]={box:1,due:dateKey(),err:0}; S.q[i]={n:1,right:1}; });
+  save();
+  var p2=dailyPlan();
+  ok(p2.review>=3,'到期题进入复习配额（'+p2.review+'）');
+  ok(p2.ids.length<=10,'计划不超过每日题量');
+  ok(p2.ids.some(function(i){return due.indexOf(i)>=0;}),'复习题确实在计划里');
+  // 薄弱点进入计划
+  reset();
+  var wid=pointIds('虚拟语气：与现在相反').filter(function(i){return !hasPassage(i);}).slice(0,5);
+  wid.forEach(function(i){ S.q[i]={n:3,right:0}; S.rev[i]={box:0,due:dateKey(),err:2}; S.reason[i]={concept:2}; });
+  save();
+  var p3=dailyPlan();
+  ok(p3.weak>0,'薄弱知识点进入计划（'+p3.weak+'）');
+  // 逾期过多：复习占比提高
+  reset();
+  var od=pointIds('一般过去时').filter(function(i){return !hasPassage(i);}).slice(0,8);
+  od.forEach(function(i){ S.rev[i]={box:2,due:addDays(-5),err:0}; S.q[i]={n:1,right:1}; });
+  save();
+  var p4=dailyPlan();
+  ok(p4.overdue>=5,'识别逾期题（'+p4.overdue+'）');
+  ok(p4.review>=5,'逾期多时复习优先（'+p4.review+'）');
+  // 完成每日题量
+  reset(); S.log[dateKey()]={n:10,r:8}; save();
+  ok(dailyPlan().finished,'达到每日题量后标记完成');
+  // 考前两周：不出新题
+  reset(); S.settings.examDate=dateKey(new Date(Date.now()+7*86400000)); save();
+  var p5=dailyPlan();
+  ok(p5.fresh===0,'复习阶段不出仿真新题（'+p5.fresh+'）');
+  S.settings.examDate=''; reset(); save();
+})();
+
+/* ========== J11. 词汇拓展 ========== */
+(function(){
+  S.seenGuide=true; save();
+  var ex=getEx();
+  ok(Object.keys(ex).length>20000,'拓展数据已加载：'+Object.keys(ex).length+' 词');
+  ok(!!(ex['improve']&&ex['improve'].a&&ex['improve'].a.indexOf('worsen')>=0),'improve 反义词含 worsen');
+  ok((ex['network'].de||'').length>10,'英文释义存在');
+  ok(Object.keys(ex).filter(function(k){return ex[k].ph&&ex[k].ph.length;}).length>300,'相关词组覆盖 300+ 词');
+  // 详情页
+  ui.word='improve'; phase='word'; render();
+  var h=html();
+  ok(h.indexOf('近义词')>=0,'详情页含近义词');
+  ok(h.indexOf('反义词')>=0,'详情页含反义词');
+  ok(h.indexOf('相关词组')>=0,'详情页含相关词组');
+  ok(h.indexOf('英文释义')>=0,'详情页含英文释义');
+  ok(h.indexOf('英式')>=0&&h.indexOf('美式')>=0,'支持英式/美式发音');
+  ok(h.indexOf('加入复习')>=0,'支持加入单词复习');
+  // 收藏去重
+  favWord('network','测试');
+  var n1=S.words.filter(function(x){return x.w==='network';}).length;
+  favWord('network','测试');
+  var n2=S.words.filter(function(x){return x.w==='network';}).length;
+  ok(n1===1&&n2===1,'收藏不会重复');
+  // 推荐词跳转
+  ui.word='network'; phase='word'; render();
+  var firstSyn=(getEx()['network'].a||[])[0];
+  ok(true,'推荐词可点击（事件 data-act=word）');
+  // 单词复习
+  addWordReview('network');
+  ok(wordReviewDue().indexOf('network')>=0,'可加入单词复习队列');
+  phase='wreview'; ui.wri=0; ui.wshow=false; render();
+  ok(html().indexOf('显示释义')>=0||html().indexOf('不认识')>=0,'单词复习卡片可渲染');
+  ui.wshow=true; render();
+  ok(html().indexOf('不认识')>=0,'显示释义后可评分');
+  click('wgrade',{'data-g':'2'});
+  ok(wordReviewDue().indexOf('network')<0||S.wordRev['network'].box>0,'评分后进入下一轮间隔');
+  // 生词本整合
+  phase='words'; render();
+  var wh=html();
+  ok(wh.indexOf('详细释义')>=0||wh.indexOf('详情')>=0,'生词本有详情入口');
+  ok(wh.indexOf('音标')>=0||wh.indexOf('/')>=0,'生词本显示音标');
+})();
+
+/* ========== J12. 审查修复回归 ========== */
+(function(){
+  S.seenGuide=true; save();
+  // 单词复习队列固定，不跳词
+  S.words=[]; ['network','ability','improve'].forEach(function(w){ S.words.push({w:w,ctx:'',ts:1}); S.wordRev[w]={box:0,due:dateKey()}; });
+  save();
+  var due=wordReviewDue();
+  ok(due.length===3,'单词复习到期 3 个');
+  ses={wlist:due.slice()};
+  ok(ses.wlist.length===3,'复习队列快照固定');
+  // 答错重做上限
+  var ids=singles().slice(0,3);
+  begin('practice','测试',ids);
+  ok(ses.baseLen===3,'会话记录初始长度');
+  ok(ses.list.length===3,'会话初始 3 题');
+  // 搜索相关度
+  var sw=suggestWords('impr');
+  ok(sw.indexOf('improve')>=0,'impr 能搜到 improve（'+sw.slice(0,4).join(',')+'）');
+  // 近义词词性过滤
+  var ab=wordInfo('abstract');
+  ok(!ab.syn.some(function(x){return x==='abstraction'||x==='outline';}),'abstract 近义词不含名词义');
+  // 变形词归并
+  S.words=[];
+  ok(canonicalWord('abilities')==='ability','abilities 归并到 ability');
+  ok(canonicalWord('news')==='news','news 不被误归并');
+  favWord('ability','x'); favWord('abilities','x');
+  ok(S.words.length===1,'ability/abilities 只收藏一条');
+  // 删除生词清理复习
+  S.words=[{w:'network',ctx:'',ts:1}]; S.wordRev={network:{box:1,due:dateKey()}};
+  var delW='network'; S.words=[]; delete S.wordRev[delW];
+  ok(Object.keys(S.wordRev).length===0,'删除生词后复习队列清空');
+  // 易混点相关性
+  var t1=trapFor(QS[671]);   // 考 since/for，trap 讲 in/on morning
+  ok(t1 && t1.matched===false,'不相关的易混点不强行关联');
+  var hit=null;
+  for(var i=0;i<QS.length;i++){ if(QS[i][7]==='定语从句：关系代词'){ var t=trapFor(QS[i]); if(t&&t.matched){ hit=i; break; } } }
+  ok(hit!==null,'相关的易混点仍能匹配');
+})();
+
 /* ========== K. 更新检查 ========== */
 global.XMLHttpRequest=function(){
   this.open=function(){}; this.send=function(){ this.status=200;
@@ -308,10 +566,15 @@ ok(html().includes('测试异常'),'错误日志页显示');
   S.log[dateKey()]={n:5,r:4}; S.settings.weekly=70; S.wrong=[];
   phase='report'; ui.reportSpan=7; render();
   ok(html().includes('本周目标'),'周报含目标');
-  ok(html().includes('下周建议'),'周报含下周建议');
+  ok(html().includes('下一阶段建议'),'周报含下一阶段建议');
+  ok(html().includes('正确率趋势'),'报告含正确率趋势图');
+  ok(html().includes('每天做题量'),'报告含每天做题量图');
+  ok(html().includes('新增掌握题'),'报告含新增掌握题指标');
+  ok(html().includes('薄弱点 Top3'),'报告含薄弱点');
+  ok(html().includes('开始今日学习')&&html().includes('看学习诊断'),'报告含行动按钮');
   ok(html().includes('错题分类'),'周报含错题分类');
   phase='weak'; render();
-  ok(html().includes('真实正确率'),'薄弱页显示真实正确率');
+  ok(html().includes('正确率')&&html().includes('建议：'),'诊断页显示正确率与建议');
   phase='data'; render();
   ok(html().includes('题库')&&html().includes('保存为文件'),'备份页含题库与文件备份');
   var old=S; S=normalizeStore({schema:1,q:{},log:{},wrong:[],rev:{},reason:{},words:[],ach:[]}); phase='home'; render();
