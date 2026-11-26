@@ -4,6 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0b0d13">
+<script>
+(function(){
+  try{
+    var raw=localStorage.getItem("yuhuan_v6")||localStorage.getItem("yuhuan_v5");
+    var th=raw?(JSON.parse(raw).settings||{}).theme:null;
+    th=th||"dark";
+    document.documentElement.className=th;
+    var m=document.querySelector('meta[name=theme-color]');
+    if(m) m.setAttribute("content", th==="light"?"#f4f6fb":"#0b0d13");
+    window.__yhTheme=th;
+  }catch(e){}
+})();
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,7 +32,7 @@
   --shadow:0 10px 30px -18px #000c,0 0 0 1px #ffffff08;
   --input:#0d1017; --input-line:#2b3242; --why:#0d1017; --ok:#15301f; --no:#331a1c
 }
-body.light{
+:root.light,body.light{
   --page:linear-gradient(180deg,#ffffff 0%,#eef2f9 45%);
   --card:#ffffff; --card2:#eef2f9; --fg:#161c2a; --mute:#68718a;
   --acc:#2f6fe4; --acc2:#7b5cf0; --good:#1f9e6a; --bad:#d64545; --warn:#c47a00; --line:#e2e8f3;
@@ -27,6 +40,16 @@ body.light{
   --input:#ffffff; --input-line:#ccd7e6; --why:#f2f6fd; --ok:#e6f8ef; --no:#fdeaea
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+#boot{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  background:var(--page);transition:opacity .32s ease;opacity:1}
+#boot img{width:92px;height:92px;border-radius:22px;box-shadow:0 18px 40px -18px #0009}
+#boot .bname{font-size:30px;font-weight:700;letter-spacing:4px;color:var(--fg)}
+#boot .bsub{font-size:13px;color:var(--mute);letter-spacing:1px}
+#boot .bbar{width:120px;height:3px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:6px}
+#boot .bbar i{display:block;width:40%;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--acc),var(--acc2));animation:bload 1s ease-in-out infinite}
+@keyframes bload{0%{transform:translateX(-100%)}100%{transform:translateX(320%)}}
+#boot.hide{opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms !important;transition-duration:.001ms !important} }
 html,body{margin:0;height:100%}
 body{background:var(--page);color:var(--fg);touch-action:pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%;font:16px/1.55 -apple-system,"Noto Sans SC","PingFang SC",system-ui,sans-serif}
 #app{display:flex;flex-direction:column;height:100vh;height:100dvh;height:calc(100dvh / var(--fs,1));zoom:var(--fs,1);max-width:620px;margin:0 auto;touch-action:pan-y}
@@ -42,6 +65,29 @@ nav button .ic{font-size:19px}
 nav button.on{color:var(--acc)}
 
 .view-in{animation:vin .26s cubic-bezier(.2,.8,.3,1)}
+/* 列表与卡片轻微上浮，最多前 8 项依次出现 */
+#view .card,#view .point,#view .tile,#view .sec{animation:cardUp .26s both}
+#view .card:nth-child(2),#view .point:nth-child(2){animation-delay:.02s}
+#view .card:nth-child(3),#view .point:nth-child(3){animation-delay:.04s}
+#view .point:nth-child(4){animation-delay:.06s}
+#view .point:nth-child(5){animation-delay:.08s}
+#view .point:nth-child(n+6){animation-delay:.1s}
+@keyframes cardUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+/* 选项反馈 */
+.opt{transition:transform .15s ease,background .2s,border-color .2s}
+.opt:active{transform:scale(.985)}
+.opt.sel{animation:pickPop .22s ease}
+.opt.ok{animation:okPop .32s ease}
+.opt.no{animation:noShake .3s ease}
+@keyframes pickPop{0%{transform:scale(.99)}60%{transform:scale(1.008)}100%{transform:scale(1)}}
+@keyframes okPop{0%{transform:scale(.99)}55%{transform:scale(1.01)}100%{transform:scale(1)}}
+@keyframes noShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}55%{transform:translateX(4px)}80%{transform:translateX(-2px)}}
+/* 进度条、数字与 toast */
+.bar i,.track i{transition:width .45s cubic-bezier(.2,.8,.3,1)}
+.toast.on{animation:toastIn .22s ease;display:block}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+nav button{transition:color .2s,transform .15s}
+nav button:active{transform:scale(.94)}
 @keyframes vin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .pop{animation:pop .22s cubic-bezier(.2,.8,.3,1)}
 @keyframes pop{from{transform:scale(.97);opacity:.6}to{transform:none;opacity:1}}
@@ -160,6 +206,12 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var
 </style>
 </head>
 <body>
+<div id="boot" aria-hidden="true">
+  <img src="icon-192.png" alt="">
+  <div class="bname">语欢</div>
+  <div class="bsub">高考英语语法刷题</div>
+  <div class="bbar"><i></i></div>
+</div>
 <div id="app">
   <header>
     <button class="back" id="back" data-act="back">‹ 返回</button>
@@ -268,7 +320,7 @@ function easeFactor(i, reason){
   }
   return Math.max(0.5, Math.min(1.8, f));
 }
-var VERSION = "6.33";
+var VERSION = "6.34";
 var KEY = "yuhuan_v6";
 var SCHEMA = 4;
 var OLD_KEYS = ["yuhuan_v5","grammar_v5"];
@@ -476,7 +528,11 @@ function applyFont(){
   }catch(e){ app.style.height=(100/m)+"vh"; }
 }
 function applyTheme(){
-  document.body.className = S.settings.theme==="light"?"light":"dark";
+  var th=S.settings.theme==="light"?"light":"dark";
+  document.body.className = th;
+  try{ document.documentElement.className = th; }catch(e){}
+  try{ var mt=document.querySelector('meta[name=theme-color]'); if(mt) mt.setAttribute("content", th==="light"?"#f4f6fb":"#0b0d13"); }catch(e){}
+  try{ if(window.AndroidNative && typeof AndroidNative.setTheme==="function") AndroidNative.setTheme(th); }catch(e){}
   if(document.body.setAttribute) document.body.setAttribute("data-accent", S.settings.accent||"blue");
   applyFont();
   var b=$("theme"); if(b) b.textContent = S.settings.theme==="light"?"🌙":"☀️";
@@ -1929,6 +1985,15 @@ function pageData(){
   return {title:(typeof title==="undefined"?"":title), right:(typeof right==="undefined"?"":right), html:html};
 }
 
+function bootDone(){
+  try{
+    var bt=$("boot");
+    if(bt && !bt.classList.contains("hide")){
+      bt.classList.add("hide");
+      setTimeout(function(){ try{ bt.remove(); }catch(e){} }, 380);
+    }
+  }catch(e){}
+}
 function render(){
   applyTheme();
   stopTimer();
@@ -2192,7 +2257,12 @@ function render(){
       '<div class="sec"><details class="reward"><summary>❤ 支持作者（点开）</summary>'+
         '<div class="hint" style="margin:10px 0 8px">如果语欢帮到了你，可以扫码请我吃个包子。完全自愿，不影响任何功能。</div>'+
         '<img src="reward.webp" alt="赞赏码" style="width:100%;max-width:230px;display:block;margin:0 auto;border-radius:14px"><div class="hint center" style="margin-top:8px">微信扫码 · 感谢支持</div></details></div>'+
-      '<div class="sec"><h3>关于</h3><div class="hint">语欢 v'+VERSION+' · 完全离线 · 开源免费<br>题库 '+QS.length+' 题，51 个语法点，14 套真题<br>间隔复习按答对次数安排 1/1/2/4/7/15/30 天</div></div>';
+      '<div class="sec"><h3>关于</h3><div class="hint">语欢 v'+VERSION+' · 离线优先 · 开源免费<br>'+
+        '题库 '+QS.length+' 题（14 套真题 420 + 知识点题 '+(QS.length-420)+'）· 51 个语法点<br>'+
+        '学习诊断 · 变式训练 · 动态每日计划 · 间隔复习 · 学习报告<br>'+
+        '离线词典 '+Object.keys(getDict()).length+' 词（音标 / 释义 / 例句 / 近义词）<br>'+
+        '数据只存本机，可备份、恢复、回滚上一份快照<br>'+
+        '除「检查更新」外全部离线可用</div></div>';
     var dp=$("daily"); if(dp) dp.onchange=function(){ var n=parseInt(this.value,10); if(isNaN(n)||n<5)n=5; if(n>60)n=60; S.settings.daily=n; save(); render(); };
     var ep=$("exam"); if(ep) ep.onchange=function(){ S.settings.examDate=this.value||""; save(); render(); };
     return;
@@ -2875,6 +2945,9 @@ applyDataset();
 try{ history.replaceState({phase:phase},""); }catch(e){}
 if(!S.seenGuide){ S.seenGuide=true; save(); phase="guide"; }
 render();
+if(typeof requestAnimationFrame==="function"){ requestAnimationFrame(function(){ setTimeout(bootDone, 60); }); }
+else { setTimeout(bootDone, 60); }
+setTimeout(bootDone, 1200);
 setTimeout(function(){ checkUpdate(false); }, 1500);
 setTimeout(autoRecover, 600);
 /* PWA：安装提示 */

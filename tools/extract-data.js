@@ -10,7 +10,9 @@ const vm = require('vm');
 const htmlPath = path.join(__dirname, '..', 'web', 'index.html');
 const out = process.argv[2] || '/tmp/yuhuan-data-extracted.json';
 const html = fs.readFileSync(htmlPath, 'utf8');
-const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)];
+const main = scripts.find(x => x[1].includes('function render(')) || scripts[0];
+const script = main[1];
 
 const noop = () => {};
 const el = () => ({ innerHTML: '', textContent: '', style: {}, value: '', className: '', select: noop, focus: noop, click: noop, remove: noop });

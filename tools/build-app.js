@@ -25,7 +25,8 @@ function fail(msg) { console.error('✗ ' + msg); process.exit(1); }
 
 /* 从已提交的 web/index.html 里还原全部数据（自举构建） */
 function extractFromHtml(html) {
-  const m = html.match(/<script[^>]*>([\s\S]*?)<\/script>/);
+  const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)];
+  const m = scripts.map(x => [null, x[1]]).find(x => x[1].includes('function render(')) || scripts[0];
   if (!m) fail('web/index.html 里找不到 <script>');
   const noop = () => {};
   const makeEl = () => ({

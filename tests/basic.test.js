@@ -5,14 +5,15 @@ function el(id){return els[id]||(els[id]={id,innerHTML:'',textContent:'',style:{
 const hs=[{phase:'home'}];
 global.history={pushState(s){hs.push(s)},replaceState(s){hs[0]=s},back(){hs.pop()},length:2};
 global.document={getElementById:el,addEventListener(t,f){if(t==='click')ch=f},createElement(){return{style:{},click(){},remove(){}}},body:{appendChild(){},className:'',setAttribute(){}},caretRangeFromPoint(){return null},execCommand(){return true}};
-global.window=global;global.addEventListener=function(){};
+global.window=global;global.addEventListener=function(){};global.requestAnimationFrame=function(f){return setTimeout(f,0);};
 global.localStorage={_d:{},getItem(k){return this._d[k]||null},setItem(k,v){this._d[k]=v},removeItem(k){delete this._d[k]}};
 let timers=[]; global.setInterval=function(fn){timers.push(fn);return timers.length}; global.clearInterval=function(){};
 const path=require('path');
 const htmlSrc=fs.readFileSync(path.join(__dirname,'..','web','index.html'),'utf8');
-const mm=htmlSrc.match(/<script>([\s\S]*?)<\/script>/);
-if(!mm) throw new Error('web/index.html 里找不到 script');
-vm.runInThisContext(mm[1]);
+const _scripts=[...htmlSrc.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)];
+const _main=_scripts.find(x=>x[1].includes('function render('))||_scripts[0];
+if(!_main) throw new Error('web/index.html 里找不到 script');
+vm.runInThisContext(_main[1]);
 const html=()=>els.view.innerHTML;
 
 let pass=0,fail=0;
